@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nila">
+<meta name="description" content="Nila, a little moon who keeps you company.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Nila</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Nila lives in a real night sky, so both themes are night. */
+:root{
+  --sky-top:#000000; --sky-bottom:#090C18;
+  --sea:#060913; --sea-deep:#000103;
+  --ink:#ECEEF5; --ink-soft:rgba(236,238,245,.58);
+  --panel:rgba(255,255,255,.06); --panel-strong:rgba(255,255,255,.1); --line:rgba(255,255,255,.1);
+  --accent:#E4E9F7; --accent-ink:#0B0E1A;
+  --halo:rgba(214,224,255,.26); --glint:rgba(226,232,255,.7);
+  color-scheme:dark;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --sky-bottom:#090C18; } }
+:root[data-theme="dark"]{ --sky-bottom:#090C18; }
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{background:#000;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{font-family:"Baloo Thambi 2","Nunito","Avenir Next",system-ui,-apple-system,sans-serif;color:var(--ink);background:#000;-webkit-font-smoothing:antialiased;overflow:hidden}
+#app{position:relative;height:100%;display:flex;flex-direction:column;overflow:hidden;--tide:36%}
+.sky{position:absolute;inset:0;background:linear-gradient(var(--sky-top) 0%,var(--sky-top) 45%,var(--sky-bottom) 100%);z-index:0;overflow:hidden}
+#stars{position:absolute;inset:0;width:100%;height:78%}
+.star{animation:twinkle 5s ease-in-out infinite}
+@keyframes twinkle{50%{opacity:.2}}
+.meteor{position:absolute;width:120px;height:1.5px;border-radius:2px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(235,240,255,.95));transform-origin:right center;animation:meteor 1.1s ease-in forwards;pointer-events:none}
+@keyframes meteor{0%{opacity:0;transform:rotate(-24deg) translateX(0)}15%{opacity:1}100%{opacity:0;transform:rotate(-24deg) translateX(-260px)}}
+.sea{position:absolute;left:0;right:0;bottom:0;height:var(--tide);background:linear-gradient(var(--sea),var(--sea-deep));z-index:0;box-shadow:0 -1px 0 rgba(200,212,255,.1)}
+#glimmer{position:absolute;left:50%;top:0;display:flex;flex-direction:column;align-items:center;gap:7px;padding-top:6px;transform:translateX(calc(-50% + var(--gx,0px)))}
+#glimmer span{display:block;height:2.5px;border-radius:3px;background:var(--glint);animation:glint 2.8s ease-in-out infinite}
+@keyframes glint{0%,100%{opacity:.08;transform:translateX(-4px)}50%{opacity:.6;transform:translateX(4px)}}
+
+header{position:relative;z-index:3;padding:10px 12px 0 22px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tools{display:flex;gap:2px}
+.icon-btn.small{width:40px;height:40px;color:var(--ink-soft)}
+.icon-btn.small:active{color:var(--ink)}
+.sub{display:flex;justify-content:space-between;gap:12px;margin-top:4px;padding-right:10px;font-size:.8rem;color:var(--ink-soft);line-height:1.3}
+.sub>span{display:flex;align-items:center;gap:6px}
+#weatherText{text-align:right;justify-content:flex-end}
+h1{margin:0;font-size:1.9rem;line-height:1;font-weight:600;letter-spacing:.02em}
+.phase svg{flex:none}
+
+.stage{position:relative;z-index:1;flex:1;min-height:0;display:grid;place-items:center;padding:4px 0}
+#nila{height:100%;max-height:56vh;width:auto;max-width:96vw;overflow:visible;touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#nila:active{cursor:grabbing}
+#nila,#nila:focus,#nila:focus-visible{outline:none}
+#nila *{-webkit-tap-highlight-color:transparent;outline:none}
+.crater{transform-box:fill-box;transform-origin:center}
+.crater.wobble{animation:wobble .6s ease}
+@keyframes wobble{30%{transform:scale(1.35)}60%{transform:scale(.85)}100%{transform:scale(1)}}
+#nila text{font-family:"Baloo Thambi 2","Nunito",system-ui,sans-serif;font-weight:700}
+
+.caption{position:relative;z-index:1;min-height:3.2em;max-width:30ch;margin:0 auto;padding:0 20px;text-align:center;font-size:1.18rem;line-height:1.4;font-weight:500;color:var(--ink)}
+.caption .w{opacity:0;display:inline-block;transform:translateY(4px);filter:blur(3px);transition:opacity .5s ease,transform .5s ease,filter .5s ease}
+.caption .w.on{opacity:1;transform:none;filter:none}
+.cap-actions{position:relative;z-index:2;display:flex;justify-content:center;gap:8px;margin:0 0 4px}
+.cap-actions:empty{display:none}
+.pill{font:inherit;font-size:.95rem;font-weight:600;border-radius:999px;padding:7px 16px 5px;cursor:pointer;border:1px solid var(--line);background:var(--panel-strong);color:var(--ink)}
+.pill.solid{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+#app.breathing .states,#app.breathing .wardrobe,#app.breathing .composer,#app.breathing .tools{opacity:.12;pointer-events:none;transition:opacity .6s}
+#app.breathing .caption{font-size:1.5rem;font-weight:600}
+.wx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#cloudsFront{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+#fog{opacity:0;transition:opacity 2s}
+#fog.on{opacity:1}
+#fog i{position:absolute;left:-60%;width:220%;height:70px;border-radius:50%;background:linear-gradient(90deg,transparent,rgba(200,210,235,.07) 30%,rgba(200,210,235,.1) 50%,rgba(200,210,235,.07) 70%,transparent);animation:fog 38s linear infinite alternate}
+@keyframes fog{to{transform:translateX(18%)}}
+#flash{position:absolute;inset:0;background:#DCE4FF;opacity:0;z-index:6;pointer-events:none}
+.scrim{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.5);opacity:0;transition:opacity .25s}
+.scrim.open{opacity:1}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;max-height:82%;display:flex;flex-direction:column;background:#0D1120;border:1px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;transform:translateY(100%);transition:transform .34s cubic-bezier(.2,.8,.2,1)}
+.sheet.open{transform:none}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px 10px 4px 20px}
+.sheet h2{margin:0;font-size:1.25rem;font-weight:600}
+.sheet h3{font-size:1rem;font-weight:600;margin:20px 0 8px}
+.sheet-body{overflow-y:auto;padding:4px 20px 22px;-webkit-overflow-scrolling:touch}
+.sheet textarea{width:100%;min-height:104px;resize:vertical;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--ink);font:inherit;font-size:17px;line-height:1.45;padding:12px 14px}
+.sheet textarea:focus{outline:2px solid rgba(228,233,247,.35);outline-offset:1px}
+.moods{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.mood{display:flex;align-items:center;gap:7px;font:inherit;font-size:.92rem;color:var(--ink-soft);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 13px 3px;cursor:pointer}
+.mood[aria-checked="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.primary{width:100%;border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:600;font-size:1rem;padding:12px 16px 10px;cursor:pointer}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);border-radius:999px;font:inherit;font-size:.9rem;padding:7px 14px 5px;cursor:pointer;margin-top:12px}
+#jSky{display:block;width:100%;height:auto;margin-top:18px;background:#03050C;border:1px solid var(--line);border-radius:16px}
+#jSky g{cursor:pointer}
+#jRead{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:12px;white-space:pre-wrap;line-height:1.45}
+#jRead .date{display:block;font-size:.85rem;color:var(--ink-soft);margin-bottom:4px}
+.list{list-style:none;padding:0;margin:6px 0 0}
+.list li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);line-height:1.4}
+.list li .dot{margin-top:7px}
+.list .meta{display:block;font-size:.82rem;color:var(--ink-soft)}
+.del{margin-left:auto;flex:none;background:none;border:0;color:var(--ink-soft);font:inherit;font-size:.85rem;cursor:pointer;padding:2px 4px}
+.hint{font-size:.85rem;color:var(--ink-soft);margin:10px 0 0;line-height:1.4}
+.wx-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sheet .chip{color:var(--ink-soft)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.row{position:relative;z-index:1;display:flex;gap:8px;overflow-x:auto;padding:4px 16px;scrollbar-width:none;justify-content:safe center}
+.row::-webkit-scrollbar{display:none}
+.chip{flex:none;font:inherit;font-size:.92rem;font-weight:500;color:var(--ink-soft);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 14px 3px;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background .2s,color .2s}
+.wardrobe .chip{font-size:.86rem;padding:4px 12px 2px;border-style:dashed}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent;border-style:solid}
+.chip:focus-visible,.icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.composer{position:relative;z-index:2;display:flex;align-items:center;gap:6px;margin:8px 12px 12px;padding:6px;background:var(--panel-strong);border:1px solid var(--line);border-radius:28px;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.composer input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:17px;padding:10px 12px 8px;outline:none}
+.composer input::placeholder{color:var(--ink-soft)}
+.icon-btn{flex:none;width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:transparent;color:var(--ink)}
+.icon-btn.send{background:var(--accent);color:var(--accent-ink)}
+.icon-btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.lantern{position:absolute;left:50%;bottom:190px;z-index:3;max-width:72%;padding:8px 16px 6px;border-radius:18px;background:var(--panel-strong);border:1px solid var(--line);font-size:1rem;pointer-events:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:rise 2.6s cubic-bezier(.4,.1,.6,1) forwards}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,24px) scale(.92)}14%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-34vh) scale(.55)}}
+@media (prefers-reduced-motion: reduce){.star,#glimmer span,#fog i{animation:none}.sheet{transition:none}.lantern{animation-duration:1.2s}.meteor{display:none}.caption .w{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sky" aria-hidden="true"><svg id="stars"></svg><svg id="cloudsBack" class="wx"></svg><div id="fog" class="wx"><i style="top:52%"></i><i style="top:60%;animation-duration:52s"></i><i style="top:67%;animation-duration:44s"></i></div><canvas id="rain" class="wx"></canvas></div>
+  <div class="sea" aria-hidden="true"><div id="glimmer"></div></div>
+
+  <header>
+    <div class="top">
+      <h1>Nila</h1>
+      <div class="tools">
+        <button class="icon-btn small" id="soundBtn" aria-label="Mute sounds">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="wave" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/><path class="mute" d="M16 9l5 6M21 9l-5 6" style="display:none"/></svg>
+        </button>
+        <button class="icon-btn small" id="breatheBtn" aria-label="Breathe with Nila">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8.5" stroke-dasharray="3 3.2"/></svg>
+        </button>
+        <button class="icon-btn small" id="journalBtn" aria-label="Night journal">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="M11.5 7.5l.6 1.3 1.4.2-1 1 .2 1.4-1.2-.7-1.2.7.2-1.4-1-1 1.4-.2z" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="icon-btn small" id="moreBtn" aria-label="Memories and sky">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sub">
+      <span><svg id="phaseIcon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#EDEBE5"/><path fill="#0A0D18" opacity=".8"/></svg><span id="phaseText"></span></span>
+      <span id="weatherText"></span>
+    </div>
+  </header>
+
+  <div class="stage">
+    <svg id="nila" viewBox="0 0 300 260" role="img" tabindex="0" aria-label="Nila, a little moon. Tap to play, hold to cuddle, drag to tug.">
+      <defs>
+        <radialGradient id="moonFill" cx="38%" cy="32%" r="76%"><stop offset="0" stop-color="#FBFAF6"/><stop offset=".55" stop-color="#EDEBE4"/><stop offset=".85" stop-color="#D8D5CD"/><stop offset="1" stop-color="#C3C0B9"/></radialGradient>
+        <radialGradient id="limb" cx="38%" cy="32%" r="78%"><stop offset=".55" stop-color="#1A2038" stop-opacity="0"/><stop offset="1" stop-color="#1A2038" stop-opacity=".42"/></radialGradient>
+        <radialGradient id="spec" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        <linearGradient id="craterFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9B7B2"/><stop offset=".55" stop-color="#D9D6CF"/><stop offset="1" stop-color="#EEECE6"/></linearGradient>
+        <radialGradient id="haloFill"><stop offset=".5" style="stop-color:var(--halo)"/><stop offset="1" style="stop-color:var(--halo);stop-opacity:0"/></radialGradient>
+        <radialGradient id="cheekFill"><stop offset="0" stop-color="#F3AE9E" stop-opacity=".95"/><stop offset="1" stop-color="#F3AE9E" stop-opacity="0"/></radialGradient>
+        <clipPath id="bodyClip"><circle cx="150" cy="140" r="88"/></clipPath>
+        <clipPath id="domeClip"><path d="M88 78C90 28 210 28 212 78Z"/></clipPath>
+      </defs>
+
+      <g id="orbit" aria-hidden="true"></g>
+      <circle id="breathRing" cx="150" cy="140" r="108" fill="none" stroke="#E4E9F7" stroke-width="2" stroke-linecap="round" opacity="0" transform="rotate(-90 150 140)"/>
+
+      <g id="rig">
+        <g id="c-headphones-back"><path d="M64 136Q58 40 150 38Q242 40 236 136" stroke="#7F86BF" stroke-width="10" fill="none" stroke-linecap="round"/></g>
+
+        <circle cx="150" cy="140" r="88" fill="url(#moonFill)"/>
+        <g clip-path="url(#bodyClip)">
+          <g id="surface">
+            <image id="texture" x="62" y="52" width="176" height="176"/>
+            <g class="crater"><circle cx="92" cy="92" r="13" fill="url(#craterFill)"/><path d="M81 88a12 12 0 0 1 13-8" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>
+            <g class="crater"><circle cx="206" cy="86" r="8" fill="url(#craterFill)"/></g>
+            <g class="crater"><circle cx="218" cy="180" r="15" fill="url(#craterFill)"/><path d="M205 175a14 14 0 0 1 14-9" stroke="#fff" stroke-opacity=".6" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>
+            <g class="crater"><circle cx="84" cy="190" r="7" fill="url(#craterFill)"/></g>
+            <g class="crater"><circle cx="160" cy="68" r="6" fill="url(#craterFill)"/></g>
+            <g class="crater"><circle cx="132" cy="210" r="9" fill="url(#craterFill)"/></g>
+            <g class="crater"><circle cx="180" cy="203" r="5" fill="url(#craterFill)"/></g>
+          </g>
+          <circle cx="150" cy="140" r="88" fill="url(#limb)"/>
+          <ellipse cx="116" cy="84" rx="44" ry="28" fill="url(#spec)" transform="rotate(-28 116 84)"/>
+          <path id="phase" fill="#0A0D1C" opacity=".2"/>
+        </g>
+        <circle cx="150" cy="140" r="88" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2" stroke-dasharray="120 433" stroke-dashoffset="330"/>
+
+        <!-- face -->
+        <ellipse id="cheekL" cx="100" cy="156" rx="16" ry="10" fill="url(#cheekFill)"/>
+        <ellipse id="cheekR" cx="200" cy="156" rx="16" ry="10" fill="url(#cheekFill)"/>
+        <g id="eyeL"></g><g id="eyeR"></g>
+        <path id="browL" d="M-8 1Q0-3.5 8 1" stroke="#8C877E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path id="browR" d="M-8 1Q0-3.5 8 1" stroke="#8C877E" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path id="mouth" fill="#3B2E3E" stroke="#3B2E3E" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+        <ellipse id="tongue" fill="#EE8FA2"/>
+        <path id="catMouth" d="M-10-1Q-5 5.5 0 0Q5 5.5 10-1" stroke="#3B2E3E" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path id="bleh" d="M-5.5 0Q-6 11 0 11Q6 11 5.5 0Z" fill="#EE8FA2" stroke="#CF6C82" stroke-width="1.4"/>
+        <path id="tear" d="M0-6Q5 1 0 6Q-5 1 0-6Z" fill="#B7DAFA" stroke="#86BDEB" stroke-width="1"/>
+        <path id="sweat" d="M0-8Q7 2 0 8Q-7 2 0-8Z" fill="#CFE6FA" stroke="#93C4EC" stroke-width="1.2"/>
+
+        <!-- face accessories -->
+        <g id="g-round" fill="rgba(255,255,255,.14)" stroke="#5C4A3B" stroke-width="2.8"><circle cx="-30" cy="0" r="17"/><circle cx="30" cy="0" r="17"/><path d="M-13-3Q0-9 13-3" fill="none"/></g>
+        <g id="g-shades">
+          <path d="M-58-11H58" stroke="#14151C" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M-52-11H-8Q-7 14-30 16Q-52 14-52-11Z" fill="#14151C"/>
+          <path d="M52-11H8Q7 14 30 16Q52 14 52-11Z" fill="#14151C"/>
+          <path d="M-44-5L-36-5M-40 1L-30 1M16-5L24-5M20 1L30 1" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".75"/>
+        </g>
+        <g id="mag">
+          <line x1="15" y1="15" x2="34" y2="36" stroke="#6E5847" stroke-width="7" stroke-linecap="round"/>
+          <circle r="21" fill="rgba(214,232,255,.22)" stroke="#C7A565" stroke-width="4.5"/>
+          <path d="M-12-8A14 14 0 0 1-4-14" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"/>
+        </g>
+
+        <!-- hats -->
+        <g id="hats">
+          <g id="c-detective">
+            <path d="M92 70Q82 48 100 42Q104 58 106 72Z" fill="#7A6250"/>
+            <path d="M208 70Q218 48 200 42Q196 58 194 72Z" fill="#7A6250"/>
+            <path d="M88 78C90 28 210 28 212 78Z" fill="#94795F"/>
+            <g clip-path="url(#domeClip)" stroke="#5E4A3A" stroke-width="2" opacity=".45"><path d="M110 20V80M130 20V80M150 20V80M170 20V80M190 20V80M80 44H220M80 60H220"/></g>
+            <path d="M150 34q-14-11-16 1q2 9 16-1q14-11 16 1q-2 9-16-1Z" fill="#5E4A3A"/>
+            <path d="M88 71Q150 86 212 71L212 79Q150 94 88 79Z" fill="#5E4A3A"/>
+            <path d="M98 80Q150 106 202 80Q150 92 98 80Z" fill="#6B5544"/>
+          </g>
+          <g id="c-headphones">
+            <g id="cupL"><rect x="-13" y="-23" width="26" height="46" rx="12" fill="#8E95CF"/><rect x="-6" y="-15" width="11" height="30" rx="5.5" fill="#B9BEE6"/></g>
+            <g id="cupR"><rect x="-13" y="-23" width="26" height="46" rx="12" fill="#8E95CF"/><rect x="-5" y="-15" width="11" height="30" rx="5.5" fill="#B9BEE6"/></g>
+          </g>
+          <g id="c-nightcap">
+            <path d="M96 76C102 30 150 16 194 24C230 30 248 52 256 80C238 60 216 56 202 62C208 66 208 72 206 76Z" fill="#6F7FB8"/>
+            <g fill="#98A5D6"><circle cx="130" cy="44" r="4"/><circle cx="170" cy="34" r="4"/><circle cx="160" cy="58" r="4"/><circle cx="212" cy="40" r="3.5"/><circle cx="118" cy="66" r="3.5"/></g>
+            <path d="M92 72Q150 56 208 72Q211 82 205 88Q150 72 95 88Q89 82 92 72Z" fill="#F1F1F6"/>
+            <circle cx="256" cy="82" r="11" fill="#F1F1F6"/>
+          </g>
+          <g id="c-party">
+            <path d="M124 68L152 2L180 68Q152 76 124 68Z" fill="#E2A3B3"/>
+            <path d="M135 42L169 42M129 56L175 56" stroke="#F2CBD5" stroke-width="4"/>
+            <g fill="#E8CB85"><circle cx="146" cy="30" r="3.5"/><circle cx="158" cy="49" r="3.5"/><circle cx="140" cy="62" r="3"/></g>
+            <circle cx="152" cy="3" r="8" fill="#E8CB85"/>
+          </g>
+          <g id="c-chef" stroke="#DCDAD3" stroke-width="2" fill="#FAFAF7">
+            <circle cx="120" cy="42" r="20"/><circle cx="180" cy="42" r="20"/><circle cx="150" cy="30" r="25"/>
+            <rect x="112" y="48" width="76" height="26" rx="7"/>
+            <path d="M132 52V70M150 52V70M168 52V70" fill="none"/>
+          </g>
+          <g id="c-scholar">
+            <path d="M116 50V68Q150 80 184 68V50L150 62Z" fill="#333A5C"/>
+            <path d="M150 22L214 42L150 62L86 42Z" fill="#2A3050"/>
+            <path d="M150 42L206 49L206 72" stroke="#E3C27A" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M202 70h8l-1.5 11h-5z" fill="#E3C27A"/><circle cx="150" cy="42" r="4" fill="#E3C27A"/>
+          </g>
+          <g id="c-crown">
+            <path d="M108 70L112 30L131 50L150 22L169 50L188 30L192 70Q150 78 108 70Z" fill="#E6C47C" stroke="#C9A55A" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="150" cy="58" r="5.5" fill="#E08FA3"/><circle cx="126" cy="62" r="3.8" fill="#93C6E6"/><circle cx="174" cy="62" r="3.8" fill="#93C6E6"/>
+            <g fill="#F2DCA6"><circle cx="112" cy="29" r="4"/><circle cx="150" cy="21" r="4.5"/><circle cx="188" cy="29" r="4"/></g>
+          </g>
+          <g id="c-umbrella">
+            <path d="M150 12V56" stroke="#8C877E" stroke-width="3" stroke-linecap="round"/>
+            <path d="M76 46Q80 2 150 0Q220 2 224 46Q206 37 187 46Q169 37 150 46Q131 37 113 46Q94 37 76 46Z" fill="#7C8DC4"/>
+            <path d="M150 1Q126 16 113 46M150 1Q174 16 187 46" stroke="#A3B0DC" stroke-width="2" fill="none"/>
+            <circle cx="150" cy="-1" r="3.5" fill="#A3B0DC"/>
+          </g>
+          <g id="c-beanie">
+            <path d="M90 80C90 28 210 28 210 80Z" fill="#9FB7A8"/>
+            <path d="M120 40V74M150 32V74M180 40V74" stroke="#8DA797" stroke-width="3"/>
+            <path d="M84 68Q150 54 216 68L216 86Q150 72 84 86Z" fill="#88A293"/>
+            <path d="M100 66V82M116 63V80M132 61V78M150 60V77M168 61V78M184 63V80M200 66V82" stroke="#728C7D" stroke-width="2.5"/>
+            <circle cx="150" cy="30" r="13" fill="#F3F1EA"/>
+          </g>
+        </g>
+
+        <g id="thoughts" fill="#EDE6CC"><circle r="4"/><circle r="5.5"/><circle r="7"/></g>
+        <g id="waves" stroke="#AFC3EE" stroke-width="3" fill="none" stroke-linecap="round"><path d="M0-10Q7 0 0 10"/><path d="M0-10Q7 0 0 10"/><path d="M0-10Q7 0 0 10"/></g>
+        <g id="zzz" fill="#C4CCE8"><text>z</text><text>z</text><text>z</text></g>
+        <g id="emote"><circle cx="-13" cy="15" r="4" fill="#F4F5F9"/><circle r="17" fill="#F4F5F9"/><text id="emoteText" y="7.5" text-anchor="middle" font-size="21" fill="#2A3050">!</text></g>
+      </g>
+      <g id="fx"></g>
+    </svg>
+  </div>
+
+  <svg id="cloudsFront" aria-hidden="true"></svg>
+  <div class="caption" id="caption" aria-hidden="true"></div>
+  <div class="cap-actions" id="capActions"></div>
+  <div class="sr" id="live" aria-live="polite"></div>
+
+  <div class="row states" role="group" aria-label="Try a state">
+    <button class="chip" data-state="idle">Idle</button>
+    <button class="chip" data-state="typing">Typing</button>
+    <button class="chip" data-state="listening">Listening</button>
+    <button class="chip" data-state="thinking">Thinking</button>
+    <button class="chip" data-state="replying">Replying</button>
+    <button class="chip" data-state="happy">Happy</button>
+    <button class="chip" data-state="sleeping">Sleeping</button>
+  </div>
+  <div class="row wardrobe" role="group" aria-label="Dress up Nila" id="wardrobe"></div>
+
+  <div class="composer">
+    <button class="icon-btn" id="mic" aria-label="Talk to Nila" aria-pressed="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    </button>
+    <input id="input" type="text" placeholder="Say something to Nila" autocomplete="off" enterkeyhint="send" aria-label="Message to Nila">
+    <button class="icon-btn send" id="send" aria-label="Send message">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+    </button>
+  </div>
+  <div id="flash"></div>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <section class="sheet" id="journalSheet" role="dialog" aria-modal="true" aria-labelledby="jTitle" hidden>
+    <div class="sheet-head"><h2 id="jTitle">Night journal</h2><button class="icon-btn small" data-close aria-label="Close journal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-body">
+      <textarea id="jText" maxlength="1500" placeholder="How was your day? Nila is listening." aria-label="Tonight's entry"></textarea>
+      <div class="moods" role="radiogroup" aria-label="How did today feel?" id="jMoods"></div>
+      <button class="primary" id="jSave">Save to the sky</button>
+      <svg id="jSky" viewBox="0 0 320 150" role="group" aria-label="Your journal constellation"></svg>
+      <p class="hint" id="jHint">Every entry becomes a star. Tap one to read that night again.</p>
+      <div id="jRead" hidden></div>
+      <ol class="list" id="jList"></ol>
+    </div>
+  </section>
+
+  <section class="sheet" id="moreSheet" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+    <div class="sheet-head"><h2 id="mTitle">Nila's sky and memories</h2><button class="icon-btn small" data-close aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-body">
+      <h3>What Nila remembers</h3>
+      <ul class="list" id="memList"></ul>
+      <p class="hint" id="memEmpty">Nothing yet. Tell her things like "my name is Arun", "I love filter coffee" or "I have an exam tomorrow".</p>
+      <button class="ghost" id="forgetAll">Forget everything</button>
+      <p class="hint" id="syncHint">Saved on this device.</p>
+      <h3>Your data</h3>
+      <p class="hint" style="margin-top:0">Take Nila's memories and your journal with you, for example when you move her to your own website.</p>
+      <div class="wx-chips" style="margin-top:10px"><button class="chip" id="exportBtn">Export a backup</button><button class="chip" id="importBtn">Import a backup</button></div>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+      <p class="hint" id="dataHint" aria-live="polite"></p>
+      <h3>Weather in Madurai</h3>
+      <p class="hint" id="wxHint" style="margin-top:0"></p>
+      <div class="wx-chips" id="wxChips" role="group" aria-label="Preview the weather" style="margin-top:10px"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+const q = s => document.querySelector(s);
+const qa = s => [...document.querySelectorAll(s)];
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const now = () => performance.now() / 1000;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+const app = q('#app'), input = q('#input'), caption = q('#caption'), live = q('#live'), svg = q('#nila');
+const f1 = v => v.toFixed(1), f3 = v => v.toFixed(3);
+
+/* ---------- Storage: this device, plus your claude.ai account when available ---------- */
+const uidGen = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const clone = o => JSON.parse(JSON.stringify(o));
+const Store = (() => {
+  const LS = 'nila-store-v1';
+  let local = {};
+  try { local = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+  let db = null, base = null;
+  const ready = [], chains = {}, timers = {};
+  const saveLocal = () => { try { localStorage.setItem(LS, JSON.stringify(local)); } catch (e) {} };
+  function merge(k, a, b) {
+    if (!a) return b; if (!b) return a;
+    if (a.items || b.items) {
+      const del = new Set([...(a.deleted || []), ...(b.deleted || [])]), map = new Map();
+      [...(b.items || []), ...(a.items || [])].forEach(x => { const p = map.get(x.id); if (!p || (x.updated || x.created || 0) >= (p.updated || p.created || 0)) map.set(x.id, x); });
+      return { items: [...map.values()].filter(x => !del.has(x.id)), deleted: [...del].slice(-400), updatedAt: Math.max(a.updatedAt || 0, b.updatedAt || 0) };
+    }
+    if (k === 'profile') return { visits: Math.max(a.visits || 0, b.visits || 0), last: Math.max(a.last || 0, b.last || 0), updatedAt: Math.max(a.updatedAt || 0, b.updatedAt || 0) };
+    return (a.updatedAt || 0) >= (b.updatedAt || 0) ? a : b;
+  }
+  function push(k) {
+    if (!db) return;
+    clearTimeout(timers[k]);
+    timers[k] = setTimeout(() => {
+      const body = clone(local[k]);
+      chains[k] = (chains[k] || Promise.resolve()).then(() => db.doc(base + '/' + k).set(body)).catch(() => {});
+    }, 500);
+  }
+  async function init() {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    try {
+      const [d, u] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      if (!d || !u) return;
+      const id = await u.id(); if (!id) return;
+      db = d; base = 'data/users/' + id;
+      const snap = await db.collection(base).get();
+      const remote = {};
+      snap.docs.forEach(x => { if (x.exists) remote[x.id] = clone(x.data()); });
+      for (const k of new Set([...Object.keys(remote), ...Object.keys(local)])) {
+        const m = merge(k, local[k], remote[k]); local[k] = m;
+        if (JSON.stringify(m) !== JSON.stringify(remote[k])) push(k);
+      }
+      saveLocal(); ready.forEach(f => { try { f(); } catch (e) {} });
+    } catch (e) { db = null; }
+  }
+  return {
+    get: k => local[k], keys: () => Object.keys(local),
+    set(k, v) { v.updatedAt = Date.now(); local[k] = v; saveLocal(); push(k); },
+    onReady: f => ready.push(f), init, get synced() { return !!db; },
+    dump: () => clone(local),
+    importAll(obj) {
+      Object.keys(obj || {}).filter(k => k === 'profile' || k === 'memories' || /^journal-\d{4}$/.test(k)).forEach(k => {
+        const m = merge(k, local[k], obj[k]); m.updatedAt = Date.now(); local[k] = m; push(k);
+      });
+      saveLocal();
+    }
+  };
+})();
+
+/* ---------- Profile and long-term memory ---------- */
+const prof = Object.assign({ visits: 0, last: 0 }, Store.get('profile') || {});
+const memDoc = () => clone(Store.get('memories') || { items: [], deleted: [] });
+function memItems() { const d = Store.get('memories'); if (!d) return []; const del = new Set(d.deleted || []); return (d.items || []).filter(x => !del.has(x.id)); }
+function addMemory(m) {
+  const d = memDoc(), val = String(m.value).trim();
+  if (d.items.some(x => x.type === m.type && x.key === m.key && String(x.value).toLowerCase() === val.toLowerCase())) return false;
+  if (['name', 'birthday', 'home', 'work', 'fav'].includes(m.type)) d.items.filter(x => x.type === m.type && x.key === m.key).forEach(x => d.deleted.push(x.id));
+  d.items = d.items.filter(x => !(d.deleted || []).includes(x.id));
+  d.items.push(Object.assign({ id: uidGen(), created: Date.now() }, m, { value: val }));
+  Store.set('memories', d); return true;
+}
+function updateMemory(id, patch) { const d = memDoc(); const it = d.items.find(x => x.id === id); if (!it) return; Object.assign(it, patch, { updated: Date.now() }); Store.set('memories', d); }
+function forgetMemory(id) { const d = memDoc(); d.items = d.items.filter(x => x.id !== id); d.deleted = [...(d.deleted || []), id]; Store.set('memories', d); }
+const myName = () => (memItems().find(x => x.type === 'name') || {}).value || '';
+const you = () => myName() ? `, ${myName()}` : '';
+try { // bring over the earlier version's memory
+  const old = JSON.parse(localStorage.getItem('nila-memory-v1') || 'null');
+  if (old) {
+    prof.visits = Math.max(prof.visits, old.visits || 0); prof.last = Math.max(prof.last, old.last || 0);
+    if (old.name && !myName()) addMemory({ type: 'name', key: 'name', value: old.name, label: `Your name is ${old.name}` });
+    localStorage.removeItem('nila-memory-v1');
+  }
+} catch (e) {}
+const prevVisit = prof.last;
+prof.visits += 1; prof.last = Date.now(); Store.set('profile', prof);
+
+/* ---------- Sound, synthesised so nothing needs downloading ---------- */
+const Sound = (() => {
+  let ctx = null, master = null, buf = null, rain = null, pad = null;
+  let enabled = true; try { enabled = localStorage.getItem('nila-sound') !== 'off'; } catch (e) {}
+  // iPhone mutes web audio when the ring/silent switch is on silent. Asking for a "playback" audio
+  // session (and keeping a silent audio element playing) lets Nila be heard like music or videos.
+  let keeper = null;
+  function silentWavUrl() {
+    const sr = 8000, n = 1600, b = new ArrayBuffer(44 + n * 2), v = new DataView(b), w = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+    let bin = ''; new Uint8Array(b).forEach(x => { bin += String.fromCharCode(x); }); return 'data:audio/wav;base64,' + btoa(bin);
+  }
+  function unlock() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    try { const sb = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource(); src.buffer = sb; src.connect(ctx.destination); src.start(0); } catch (e) {}
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    if (enabled) {
+      try { if (!keeper) { keeper = new Audio(silentWavUrl()); keeper.loop = true; keeper.setAttribute('playsinline', ''); keeper.volume = .01; } if (keeper.paused) keeper.play().catch(() => {}); } catch (e) {}
+    }
+  }
+  function ensure() {
+    if (ctx) { unlock(); return; }
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      master = ctx.createGain(); master.gain.value = enabled ? .6 : 0; master.connect(ctx.destination);
+      buf = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
+      const d = buf.getChannelData(0); let last = 0;
+      for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; last = (last + .02 * w) / 1.02; d[i] = last * 3.2; }
+      if (wantRain) setRain(wantRain);
+      unlock();
+    } catch (e) { ctx = null; }
+  }
+  const live = () => ctx && enabled;
+  function tone(f, dur, o = {}) {
+    if (!live()) return;
+    const t = ctx.currentTime + (o.delay || 0), osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(f, t);
+    if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(30, f * o.slide), t + dur);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(o.vol || .1, t + (o.attack || .006)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    osc.connect(g).connect(master); osc.start(t); osc.stop(t + dur + .05);
+  }
+  function noise(dur, o = {}) {
+    if (!live()) return;
+    const t = ctx.currentTime + (o.delay || 0), src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = buf; f.type = o.type || 'bandpass'; f.frequency.setValueAtTime(o.freq || 1000, t); f.Q.value = o.q || 1;
+    if (o.sweep) f.frequency.exponentialRampToValueAtTime(o.sweep, t + dur);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(o.vol || .1, t + (o.attack || .01)); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f).connect(g).connect(master); src.start(t, Math.random() * 1.5); src.stop(t + dur + .05);
+  }
+  let wantRain = 0;
+  function setRain(v) {
+    wantRain = v; if (!ctx) return;
+    if (!rain && v > 0) {
+      const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      src.buffer = buf; src.loop = true; f.type = 'lowpass'; f.frequency.value = 2400; g.gain.value = 0;
+      src.connect(f).connect(g).connect(master); src.start(); rain = { src, g };
+    }
+    if (rain) rain.g.gain.setTargetAtTime(v * .16, ctx.currentTime, .8);
+  }
+  const MOHANAM = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
+  return {
+    ensure, setRain, get on() { return enabled; },
+    toggle() { enabled = !enabled; try { localStorage.setItem('nila-sound', enabled ? 'on' : 'off'); } catch (e) {} ensure(); if (master) master.gain.setTargetAtTime(enabled ? .6 : 0, ctx.currentTime, .05); if (!enabled && keeper) keeper.pause(); return enabled; },
+    tap()     { tone(880, .25, { vol: .1 }); tone(1320, .18, { vol: .04, delay: .01 }); },
+    giggle()  { [660, 780, 920, 1040, 1180].forEach((f, i) => tone(f, .08, { vol: .07, delay: i * .065, type: 'triangle' })); },
+    boop()    { tone(760, .15, { vol: .12, slide: .45 }); },
+    hop()     { tone(380, .12, { vol: .05, slide: 2.2 }); },
+    poof()    { noise(.35, { vol: .09, freq: 2200, sweep: 500 }); },
+    heart()   { tone(1046.5, .35, { vol: .07 }); tone(1318.5, .45, { vol: .06, delay: .12 }); },
+    sparkle() { [2093, 2637, 3136].forEach((f, i) => tone(f * (1 + Math.random() * .02), .25, { vol: .03, delay: i * .07 })); },
+    wake()    { tone(300, .45, { vol: .08, slide: 2.6, type: 'triangle' }); },
+    sad()     { tone(440, .4, { vol: .06 }); tone(370, .6, { vol: .06, delay: .28 }); },
+    dizzy()   { for (let i = 0; i < 6; i++) tone(i % 2 ? 620 : 520, .1, { vol: .05, delay: i * .09, type: 'triangle' }); },
+    emote()   { tone(990, .09, { vol: .04, slide: 1.4 }); },
+    tick()    { noise(.03, { vol: .02, freq: 3200, q: 3 }); },
+    note()    { tone(pick(MOHANAM), .4, { vol: .045, type: 'triangle' }); },
+    meteor()  { tone(2600, 1.1, { vol: .025, slide: .35 }); },
+    chime()   { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, .7, { vol: .05, delay: i * .1 })); },
+    thunder() { noise(2.8, { vol: .32, freq: 160, type: 'lowpass', attack: .12 }); noise(1.2, { vol: .12, freq: 420, type: 'lowpass', delay: .05 }); },
+    snore()   { noise(1.5, { vol: .025, freq: 380, type: 'lowpass', attack: .7 }); },
+    cricket() { for (let i = 0; i < 3; i++) tone(4300, .028, { vol: .009, delay: i * .055 }); },
+    breathStart() {
+      if (!live() || pad) return;
+      const g = ctx.createGain(), f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = .0001;
+      const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(); o1.frequency.value = 196; o2.frequency.value = 196.8; o2.type = 'triangle';
+      o1.connect(f); o2.connect(f); f.connect(g).connect(master); o1.start(); o2.start(); pad = { g, o1, o2 };
+    },
+    breath(b) { if (!pad) return; const t = ctx.currentTime; pad.g.gain.setTargetAtTime(.012 + b * .05, t, .25); pad.o1.frequency.setTargetAtTime(196 + b * 65, t, .3); pad.o2.frequency.setTargetAtTime(196.8 + b * 65, t, .3); },
+    breathStop() { if (!pad) return; const p = pad; pad = null; p.g.gain.setTargetAtTime(.0001, ctx.currentTime, .3); setTimeout(() => { try { p.o1.stop(); p.o2.stop(); } catch (e) {} }, 1500); }
+  };
+})();
+['pointerdown', 'keydown', 'touchend', 'click'].forEach(ev => document.addEventListener(ev, () => Sound.ensure(), { capture: true, passive: true }));
+
+/* ---------- Tonight's real moon phase ---------- */
+function shadowPath(p, cx, cy, r) {
+  const k = r * Math.abs(Math.cos(2 * Math.PI * p)), T = `${cx} ${cy - r}`, B = `${cx} ${cy + r}`;
+  if (p < 0.5) return `M${T}A${r} ${r} 0 0 0 ${B}A${k} ${r} 0 0 ${p < 0.25 ? 0 : 1} ${T}Z`;
+  return `M${T}A${r} ${r} 0 0 1 ${B}A${k} ${r} 0 0 ${p < 0.75 ? 0 : 1} ${T}Z`;
+}
+const moon = (() => {
+  const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14);
+  let age = ((Date.now() - ref) / 864e5) % syn; if (age < 0) age += syn;
+  const p = age / syn, illum = (1 - Math.cos(2 * Math.PI * p)) / 2;
+  const names = [[.03,'New moon'],[.22,'Waxing crescent'],[.28,'First quarter'],[.47,'Waxing gibbous'],[.53,'Full moon'],[.72,'Waning gibbous'],[.78,'Last quarter'],[.97,'Waning crescent'],[1.01,'New moon']];
+  return { p, illum, name: names.find(n => p < n[0])[1] };
+})();
+q('#phase').setAttribute('d', shadowPath(moon.p, 150, 140, 88));
+q('#phaseIcon path').setAttribute('d', shadowPath(moon.p, 12, 12, 10));
+/* Nila's personality follows the real sky tonight */
+const SKY = (() => {
+  const i = moon.illum, waxing = moon.p < .5;
+  if (i < .08) return { key: 'shy', label: 'shy', energy: .65, glow: .85, gap: [7, 11], acts: ['slowblink', 'look', 'cat', 'hum'], line: "It's a new moon, so I'm feeling a little shy tonight." };
+  if (i > .94) return { key: 'radiant', label: 'radiant', energy: 1.3, glow: 1.2, gap: [4, 7], acts: ['spin', 'hop', 'sparkle', 'wink', 'hum', 'look'], line: "Full moon tonight! I'm at my very brightest." };
+  if (waxing) return i < .5
+    ? { key: 'curious', label: 'curious', energy: .95, glow: 1, gap: [5, 8], acts: ['look', 'sparkle', 'hop', 'wink', 'slowblink'], line: "I'm growing brighter every night, and feeling curious." }
+    : { key: 'playful', label: 'playful', energy: 1.1, glow: 1.05, gap: [4.5, 8], acts: ['hop', 'spin', 'sparkle', 'wink', 'cat', 'look'], line: "I'm almost full, so I'm feeling playful!" };
+  return i > .5
+    ? { key: 'dreamy', label: 'dreamy', energy: .9, glow: 1, gap: [5.5, 9], acts: ['hum', 'cat', 'slowblink', 'look', 'wink'], line: "I'm waning tonight, so I'm in a dreamy mood." }
+    : { key: 'calm', label: 'calm', energy: .75, glow: .92, gap: [6.5, 10], acts: ['slowblink', 'cat', 'hum', 'look'], line: "I'm a quiet, calm moon tonight." };
+})();
+q('#phaseText').textContent = `${moon.name}, Nila feels ${SKY.label}`;
+q('#phaseText').title = `${Math.round(moon.illum * 100)}% lit tonight`;
+
+/* ---------- Realistic surface texture, painted once ---------- */
+(function paintTexture() {
+  const S = 352, cv = document.createElement('canvas'); cv.width = cv.height = S;
+  const x = cv.getContext('2d');
+  const blob = (cx, cy, r, a) => {
+    const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, `rgba(112,118,138,${a})`); g.addColorStop(.65, `rgba(112,118,138,${a * .55})`); g.addColorStop(1, 'rgba(112,118,138,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+  };
+  [[96,88,64,.2],[58,176,58,.17],[236,96,46,.17],[270,170,40,.15],[150,44,34,.12],[214,262,44,.12],[92,270,30,.1],[176,118,26,.06]].forEach(b => blob(...b));
+  for (let i = 0; i < 2800; i++) {
+    const light = Math.random() < .5;
+    x.fillStyle = light ? `rgba(255,255,255,${(Math.random() * .05).toFixed(3)})` : `rgba(58,62,82,${(Math.random() * .04).toFixed(3)})`;
+    x.fillRect(Math.random() * S, Math.random() * S, 1.5, 1.5);
+  }
+  for (let i = 0; i < 38; i++) {
+    const cx = Math.random() * S, cy = Math.random() * S, r = 1.6 + Math.random() * 5.5;
+    x.fillStyle = 'rgba(86,90,108,.16)'; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+    x.strokeStyle = 'rgba(255,255,255,.3)'; x.lineWidth = 1; x.beginPath(); x.arc(cx, cy, r, Math.PI * .15, Math.PI * .85); x.stroke();
+  }
+  q('#texture').setAttribute('href', cv.toDataURL());
+})();
+
+/* ---------- Night scenery ---------- */
+for (let i = 0; i < 110; i++) {
+  const c = document.createElementNS(NS, 'circle');
+  c.setAttribute('cx', f1(Math.random() * 100) + '%'); c.setAttribute('cy', f1(Math.random() * 100) + '%');
+  c.setAttribute('r', (0.35 + Math.random() * Math.random() * 1.5).toFixed(2));
+  c.setAttribute('fill', pick(['#FFFFFF', '#FFFFFF', '#FFFFFF', '#DCE4FF', '#FFF1DA']));
+  c.setAttribute('opacity', (.35 + Math.random() * .65).toFixed(2));
+  c.setAttribute('class', 'star'); c.style.animationDelay = (-Math.random() * 5).toFixed(2) + 's';
+  q('#stars').appendChild(c);
+}
+for (let i = 0; i < 6; i++) {
+  const s = document.createElement('span');
+  s.style.width = (16 + i * 10 + Math.random() * 10) + 'px'; s.style.marginLeft = ((Math.random() - .5) * 20) + 'px';
+  s.style.animationDelay = (-Math.random() * 2.8).toFixed(2) + 's'; q('#glimmer').appendChild(s);
+}
+
+/* ---------- Your constellation: one star for every visit ---------- */
+const orbitStars = [];
+let orbitAngle = 0; const bornAt = now() + .8;
+function buildOrbit() {
+  orbitStars.length = 0; q('#orbit').innerHTML = '';
+  const n = Math.min(Math.max(prof.visits, 1), 16);
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + (i % 2 ? .25 : -.1) + (i * 2.39996) % .6;
+    const r = 112 + (i % 3) * 9;
+    const el = document.createElementNS(NS, 'path');
+    el.setAttribute('d', 'M0-5Q.7-.7 5 0Q.7.7 0 5Q-.7.7-5 0Q-.7-.7 0-5Z');
+    el.setAttribute('fill', i === n - 1 ? '#F4E3B8' : '#DDE4F7');
+    q('#orbit').appendChild(el);
+    orbitStars.push({ el, x: 150 + Math.cos(a) * r, y: 140 + Math.sin(a) * r * .92, s: .7 + (i % 4) * .15, sp: 1 + (i % 5) * .35, ph: i * 1.7, fresh: i === n - 1 && prof.visits > 1 });
+  }
+}
+buildOrbit();
+
+/* ---------- Eyes ---------- */
+function starPath(R, r) { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r : R; d += (i ? 'L' : 'M') + f1(Math.cos(a) * rr) + ' ' + f1(Math.sin(a) * rr); } return d + 'Z'; }
+function spiralPath() { let d = ''; for (let i = 0; i <= 60; i++) { const a = i / 60 * Math.PI * 5, r = 1 + i / 60 * 10; d += (i ? 'L' : 'M') + f1(Math.cos(a) * r) + ' ' + f1(Math.sin(a) * r); } return d; }
+const eyeMarkup = `
+  <g class="e-normal"><g class="e-open"><ellipse rx="10" ry="13.5" fill="#1C2340"/><ellipse cy="4.8" rx="7" ry="6.6" fill="#44508A" opacity=".8"/><circle class="hl" cx="-3.4" cy="-5.2" r="3.9" fill="#fff"/><circle cx="3.6" cy="4.8" r="1.8" fill="#fff" opacity=".9"/></g></g>
+  <path class="e-happy" d="M-10 4Q0-9 10 4" stroke="#1C2340" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path class="e-shut" d="M-10-1Q0 8 10-1" stroke="#1C2340" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+  <path class="e-star" d="${starPath(13, 5.6)}" fill="#EFCB78" stroke="#1C2340" stroke-width="2" stroke-linejoin="round"/>
+  <g class="e-heart"><path d="M0 11C-13 2-12-9-5.5-9C-2-9 0-6 0-4.5C0-6 2-9 5.5-9C12-9 13 2 0 11Z" fill="#E7849C" stroke="#C4637C" stroke-width="1.4"/><circle cx="-5" cy="-4" r="2.2" fill="#fff" opacity=".85"/></g>
+  <path class="e-swirl" d="${spiralPath()}" stroke="#1C2340" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+const eyes = ['#eyeL', '#eyeR'].map((sel, i) => {
+  const g = q(sel); g.innerHTML = eyeMarkup;
+  return { g, x: i ? 180 : 120, normal: g.querySelector('.e-normal'), open: g.querySelector('.e-open'), hl: g.querySelector('.hl'),
+    happy: g.querySelector('.e-happy'), shut: g.querySelector('.e-shut'), star: g.querySelector('.e-star'),
+    heart: g.querySelector('.e-heart'), swirl: g.querySelector('.e-swirl') };
+});
+
+/* ---------- Costumes ---------- */
+const COSTUMES = {
+  detective:  { label: 'Detective', hat: 'c-detective', face: 'mag',
+    words: ['find*','search*','investigat*','myster*','clue*','who','why','where','lost','solve*','secret*','suspicious','detective','figure out','🔍'],
+    line: "Detective Nila is on the case! Once my brain is connected, I'll crack it." },
+  chef:       { label: 'Chef', hat: 'c-chef', words: ['cook*','recipe*','food','eat','eating','hungry','dinner','lunch','breakfast','biryani','dosa','idli','pizza','cake','coffee','tea','chai','🍕','🍰'],
+    line: 'Chef Nila reporting for duty! Real recipes arrive with my brain.' },
+  party:      { label: 'Party', hat: 'c-party', words: ['birthday','party','congrat*','celebrat*','yay','hooray','won','🎉','🥳','🎂'], line: 'Party time! I brought the confetti.' },
+  scholar:    { label: 'Scholar', hat: 'c-scholar', face: 'g-round', words: ['learn*','stud*','explain*','math*','exam*','homework','science','teach*','lesson*','school','college','code','coding','book*','📚'],
+    line: 'Professor Nila is ready. The real lesson comes when my brain is connected.' },
+  shades:     { label: 'Shades', face: 'g-shades', words: ['cool','chill','sunny','summer','beach','vacation','😎'], line: 'Too cool for the night sky.' },
+  crown:      { label: 'Crown', hat: 'c-crown', words: ['best','queen','king','proud','champion','princess','👑'], line: 'Why thank you. I do feel rather royal.' },
+  beanie:     { label: 'Beanie', hat: 'c-beanie', words: ['cold','winter','snow*','freez*','chilly','❄️','☃️'], line: 'Brr! Good thing I packed my beanie.' },
+  headphones: { label: 'Headphones', hat: 'c-headphones', back: 'c-headphones-back', words: ['music','song*','playlist','sing*','spotify','🎵','🎧'], line: 'Ooh, music! Play me something soft.' },
+  umbrella:   { label: 'Umbrella', hat: 'c-umbrella', words: ['umbrella','monsoon','drizzl*','raincoat','☔','🌧️'], line: 'Rainy talk? My umbrella is ready.' },
+  nightcap:   { label: 'Nightcap', hat: 'c-nightcap', words: ['sleep*','bed','bedtime','tired','nap','dream*','😴'], line: 'Sleepy talk? My nightcap is ready.' }
+};
+const ORDER = ['party','chef','beanie','umbrella','headphones','nightcap','crown','shades','scholar','detective'];
+for (const k in COSTUMES) {
+  const c = COSTUMES[k], esc = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const latin = c.words.filter(w => /^[a-z *]+$/i.test(w)), emoji = c.words.filter(w => !/^[a-z *]+$/i.test(w));
+  c.re = new RegExp('\\b(?:' + latin.map(w => w.endsWith('*') ? esc(w.slice(0, -1)) + '\\w*' : esc(w)).join('|') + ')\\b', 'i');
+  c.emoji = emoji; c.show = 0; c.vel = 0;
+  c.els = [c.hat, c.face, c.back].filter(Boolean).map(id => q('#' + id));
+}
+function detectCostume(text) { for (const k of ORDER) { const c = COSTUMES[k]; if (c.re.test(text) || c.emoji.some(e => text.includes(e))) return k; } return null; }
+const wardrobe = q('#wardrobe');
+[...Object.keys(COSTUMES), 'none'].forEach(k => {
+  const b = document.createElement('button'); b.className = 'chip'; b.dataset.costume = k;
+  b.textContent = k === 'none' ? 'No costume' : COSTUMES[k].label; b.setAttribute('aria-pressed', 'false'); wardrobe.appendChild(b);
+});
+
+/* ---------- Particles ---------- */
+const fxLayer = q('#fx'), parts = [];
+const CONF = ['#E2A3B3','#E8CB85','#9FC7E6','#B7B3E6','#A9D3BB'];
+function spawn(type, x, y) {
+  if (parts.length > 60 || reduce) return;
+  let e, p = { x, y, vx: 0, vy: 0, g: 0, life: 1.4, rot: 0, vr: 0, s: 1, ds: 0, sway: 0, t0: Math.random() * 6 };
+  if (type === 'heart') { e = document.createElementNS(NS, 'path'); e.setAttribute('d', 'M0 7C-9 1-8-6-3.8-6C-1.5-6 0-4 0-3C0-4 1.5-6 3.8-6C8-6 9 1 0 7Z'); e.setAttribute('fill', '#E7849C'); Object.assign(p, { vx: rnd(-15, 15), vy: rnd(-55, -35), life: 1.6, s: rnd(.8, 1.3), sway: 14 }); }
+  else if (type === 'note') { e = document.createElementNS(NS, 'text'); e.textContent = pick(['♪','♫']); e.setAttribute('font-size', '20'); e.setAttribute('fill', '#AFB6E6'); Object.assign(p, { vx: rnd(10, 30), vy: rnd(-45, -30), life: 1.8, sway: 10 }); }
+  else if (type === 'sparkle') { e = document.createElementNS(NS, 'path'); e.setAttribute('d', 'M0-7Q1-1 7 0Q1 1 0 7Q-1 1-7 0Q-1-1 0-7Z'); e.setAttribute('fill', '#F2DCA6'); const a = rnd(0, Math.PI * 2), v = rnd(40, 90); Object.assign(p, { vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: .9, s: rnd(.7, 1.3), vr: rnd(-200, 200) }); }
+  else if (type === 'confetti') { e = document.createElementNS(NS, 'rect'); e.setAttribute('x', '-3'); e.setAttribute('y', '-4.5'); e.setAttribute('width', '6'); e.setAttribute('height', '9'); e.setAttribute('rx', '1.5'); e.setAttribute('fill', pick(CONF)); Object.assign(p, { vx: rnd(-110, 110), vy: rnd(-220, -120), g: 330, life: 1.8, vr: rnd(-500, 500) }); }
+  else if (type === 'puff') { e = document.createElementNS(NS, 'circle'); e.setAttribute('r', '9'); e.setAttribute('fill', '#fff'); const a = rnd(0, Math.PI * 2); Object.assign(p, { vx: Math.cos(a) * 60, vy: Math.sin(a) * 40, life: .55, s: .6, ds: 2.2 }); }
+  else if (type === 'snow') { e = document.createElementNS(NS, 'circle'); e.setAttribute('r', rnd(1.8, 3.2).toFixed(1)); e.setAttribute('fill', '#fff'); Object.assign(p, { vy: rnd(20, 34), life: 3, sway: 12 }); }
+  else if (type === 'drip') { e = document.createElementNS(NS, 'circle'); e.setAttribute('r', '2.2'); e.setAttribute('fill', '#B7DAFA'); Object.assign(p, { vy: 20, g: 420, life: .9 }); }
+  else if (type === 'steam') { e = document.createElementNS(NS, 'circle'); e.setAttribute('r', '6'); e.setAttribute('fill', '#fff'); Object.assign(p, { vx: rnd(-6, 6), vy: -26, life: 1.6, ds: .9, sway: 8 }); }
+  else return;
+  p.e = e; p.max = p.life; fxLayer.appendChild(e); parts.push(p);
+}
+function burst(type, n, x, y) { for (let i = 0; i < n; i++) spawn(type, x + rnd(-10, 10), y + rnd(-10, 10)); }
+function updateParts(dt, t) {
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i]; p.life -= dt;
+    if (p.life <= 0) { p.e.remove(); parts.splice(i, 1); continue; }
+    p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; p.s += p.ds * dt;
+    const sx = p.sway ? Math.sin(t * 3 + p.t0) * p.sway * .15 : 0;
+    p.e.setAttribute('transform', `translate(${f1(p.x + sx)} ${f1(p.y)}) rotate(${f1(p.rot)}) scale(${p.s.toFixed(2)})`);
+    p.e.setAttribute('opacity', f3(clamp(p.life / p.max * 2) * (p.e.tagName === 'circle' && p.ds ? .7 : 1)));
+  }
+}
+
+/* ---------- State ---------- */
+const R = {
+  rig: q('#rig'), orbit: q('#orbit'), phase: q('#phase'), surface: q('#surface'), browL: q('#browL'), browR: q('#browR'),
+  cheekL: q('#cheekL'), cheekR: q('#cheekR'), mouth: q('#mouth'), tongue: q('#tongue'), cat: q('#catMouth'), bleh: q('#bleh'),
+  tear: q('#tear'), sweat: q('#sweat'), cupL: q('#cupL'), cupR: q('#cupR'), emote: q('#emote'), emoteText: q('#emoteText'),
+  thoughts: qa('#thoughts circle'), waves: qa('#waves path'), zzz: qa('#zzz text'), glimmer: q('#glimmer')
+};
+let state = 'idle', stateT = now(), lastActive = now();
+let mood = 0, question = false, typedLen = 0, lastKey = 0, winceUntil = 0, typedLove = false, typedWow = false;
+let look = { x: 0, y: 0 }, pointerSeen = -10, pointerNear = 0, nextGlance = 0, nextBlink = now() + 2, blinkStart = -1, slowBlink = false;
+let level = 0, analyser = null, micStream = null, audioCtx = null, micBuf = null, listenSim = false;
+let happyTimer = 0, demoTimer = 0, speakTok = 0;
+let manualCostume = null, topicCostume = null, topicUntil = 0, activeCostume = null;
+let sq = 0, sqv = 0, ox = 0, oy = 0, ovx = 0, ovy = 0, dragging = false, dragTravel = 0;
+let hopY = 0, hopV = 0, spinStart = -10, hatRot = 0, hatRotV = 0, lastHop = 0;
+let emoteUntil = 0, emoteS = 0, emoteV = 0;
+let nextIdleAct = now() + 6, lastIdleAct = '', pouted = false, lastTapReact = '', tapTimes = [], nextAmbient = 0;
+let caretGX = 0, peekSide = 1, nextPeek = 0;
+let breathB = 0, nextSnore = 0, nextCricket = 0, flashV = 0, nextFlash = 0, nextDrip = 0;
+let cuddle = false, cuddleX = 150, petting = 0, nextMeteor = now() + rnd(8, 16), hiddenAt = 0;
+const ov = {}, ovStart = {};
+const play = (name, dur) => { ov[name] = now() + dur; ovStart[name] = now(); };
+const on = name => now() < (ov[name] || 0);
+
+const cur = { lean:0, open:1, gx:0, gy:0, mw:10, mo:0, ms:4, mxo:0, bl:0, br:0, sad:0, angry:0, browVis:0, blush:.15, puff:0,
+  happy:0, star:0, heart:0, swirl:0, wink:0, cat:0, bleh:0, tear:0, sweat:0, thought:0, waves:0, zzz:0, shade:.2, tide:36, glow:1, near:1, drift:0, dy:0 };
+
+function setState(s) {
+  if (state === s) return;
+  if (state === 'listening' && s !== 'listening') stopMic();
+  if (state === 'happy') clearTimeout(happyTimer);
+  state = s; stateT = now();
+  qa('.states .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.state === s)));
+  if (s === 'sleeping') setCaption('Tap Nila to wake her up.');
+}
+function restState() { return document.activeElement === input ? 'attentive' : 'idle'; }
+function markActivity() { lastActive = now(); pouted = false; }
+function setCaption(text) { caption.textContent = text; live.textContent = text; }
+function emote(sym, dur = 1.4) { R.emoteText.textContent = sym; emoteUntil = now() + dur; emoteV += 8; Sound.emote(); }
+function hop(power = 1) { if (hopY === 0 || hopV > -50) { hopV = -240 * power; sq = -.08; if (power >= .8) Sound.hop(); } }
+function spin() { spinStart = now(); }
+function wake() { if (state === 'sleeping' || state === 'sleepy') { play('surprise', .8); emote('!', 1); hop(.8); Sound.wake(); return true; } return false; }
+
+/* ---------- Replies: Nila doesn't talk, her words simply appear ---------- */
+function reply(text, onDone) {
+  const tok = ++speakTok; clearInterval(demoTimer);
+  setState('replying'); live.textContent = text; caption.innerHTML = '';
+  const words = text.split(' ').map(w => { const s = document.createElement('span'); s.className = 'w'; s.textContent = w; caption.append(s, ' '); return s; });
+  let i = 0;
+  const step = () => {
+    if (tok !== speakTok) return;
+    if (i >= words.length) {
+      if (topicCostume && !manualCostume) topicUntil = now() + 6;
+      if (onDone) onDone();
+      setTimeout(() => { if (tok === speakTok && state === 'replying') setState(restState()); }, 1800);
+      return;
+    }
+    const w = words[i++]; w.classList.add('on');
+    if (w.textContent.includes('!')) { play('star', .5); hop(.45); }
+    if (w.textContent.includes('?')) play('tilt', 1);
+    setTimeout(step, 130 + Math.min(w.textContent.length, 8) * 12);
+  };
+  play('nod', .6);
+  step();
+}
+
+/* ---------- Reading your words ---------- */
+const POS = ['love','happy','great','thank','awesome','nice','good','yay','cute','wow','beautiful','fun','glad','excited','amazing','❤','😊','😍','🥰','🙂'];
+const NEG = ['sad','tired','bad','angry','hate','upset','lonely','sick','cry','hurt','worried','scared','stress','miss you','😢','😭','😞'];
+function sentiment(text) { const s = text.toLowerCase(); let v = 0; POS.forEach(w => { if (s.includes(w)) v += .5; }); NEG.forEach(w => { if (s.includes(w)) v -= .6; }); return clamp(v, -1, 1); }
+const NOT_NAMES = /^(happy|sad|tired|fine|good|okay|ok|back|here|home|sorry|not|so|very|feeling|going|from|just|really|done|free|busy|bored|hungry|sick|ready|sure|glad|excited|stressed|alone|lost|new|still|also|always|never|in|at|on|the|a|an)$/i;
+function nameIn(text) {
+  const m = text.match(/\b(?:my name is|my name's|call me|i am called)\s+([A-Za-z\u0B80-\u0BFF][\w\u0B80-\u0BFF'-]{1,20})/i)
+        || text.match(/\b(?:i'm|i am)\s+([A-Z][a-zA-Z'-]{1,20})\b/);
+  if (!m || NOT_NAMES.test(m[1])) return null;
+  return m[1].charAt(0).toUpperCase() + m[1].slice(1);
+}
+const measure = document.createElement('canvas').getContext('2d');
+function caretGaze() {
+  try {
+    const cs = getComputedStyle(input); measure.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const pos = input.selectionStart ?? input.value.length;
+    const ir = input.getBoundingClientRect(), sr = svg.getBoundingClientRect();
+    const x = ir.left + parseFloat(cs.paddingLeft) + Math.min(measure.measureText(input.value.slice(0, pos)).width - input.scrollLeft, ir.width);
+    return clamp((x - (sr.left + sr.width / 2)) / (sr.width * .45) * 7, -7, 7);
+  } catch (e) { return 0; }
+}
+function onType(isDelete) {
+  const t = now(); wake(); markActivity(); speakTok++;
+  lastKey = t; if (isDelete) { winceUntil = t + .4; play('sweat', .7); }
+  caretGX = caretGaze(); Sound.tick();
+  if (state !== 'typing' && caption.textContent) setCaption('');
+  if (t > nextPeek) { peekSide = caretGX >= 0 ? 1 : -1; play('peek', .5); nextPeek = t + rnd(2.2, 3.5); }
+  const v = input.value, lower = v.toLowerCase();
+  mood = sentiment(v); typedLen = v.length;
+  const wasQ = question; question = /\?\s*$/.test(v);
+  if (question && !wasQ) emote('?', 1.2);
+  typedLove = /love|❤|😍|🥰|cute/.test(lower); typedWow = /wow|amazing|awesome|✨/.test(lower);
+  if (!manualCostume) {
+    const c = detectCostume(v);
+    if (c !== topicCostume) { if (c) emote('!', .9); topicCostume = c; topicUntil = c ? Infinity : 0; }
+  }
+  if (!v) { setState('attentive'); return; }
+  setState('typing');
+}
+input.addEventListener('input', e => onType(e.inputType && e.inputType.startsWith('delete')));
+input.addEventListener('focus', () => { markActivity(); wake(); if (['idle','sleepy','sleeping'].includes(state)) setState('attentive'); });
+input.addEventListener('blur', () => { if (state === 'attentive') setState('idle'); });
+input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+q('#send').addEventListener('click', send);
+
+/* ---------- Long-term memory: noticing what you tell her ---------- */
+const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const todayStr = () => ymd(new Date());
+const addDays = n => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + n); return d; };
+const WHEN = '(today|tonight|tomorrow|day after tomorrow|next week|this weekend|on\\s+(?:' + DAYS.join('|') + ')|on\\s+(?:the\\s+)?\\d{1,2}(?:st|nd|rd|th)?(?:\\s+(?:of\\s+)?[a-z]{3,9})?|on\\s+[a-z]{3,9}\\s+\\d{1,2}(?:st|nd|rd|th)?)';
+function parseWhen(w) {
+  w = w.toLowerCase().replace(/^on\s+(the\s+)?/, '').trim();
+  if (w === 'today' || w === 'tonight') return addDays(0);
+  if (w === 'tomorrow') return addDays(1);
+  if (w === 'day after tomorrow') return addDays(2);
+  if (w === 'next week') return addDays(7);
+  if (w === 'this weekend') { const d = new Date().getDay(); return addDays((6 - d + 7) % 7); }
+  const di = DAYS.indexOf(w); if (di >= 0) return addDays((di - new Date().getDay() + 7) % 7);
+  let m = w.match(/^(\d{1,2})(?:st|nd|rd|th)?(?:\s+(?:of\s+)?([a-z]{3,9}))?$/) || null, day, mon;
+  if (m) { day = +m[1]; mon = m[2] ? MONTHS.indexOf(m[2].slice(0, 3)) : new Date().getMonth(); }
+  else if ((m = w.match(/^([a-z]{3,9})\s+(\d{1,2})/))) { mon = MONTHS.indexOf(m[1].slice(0, 3)); day = +m[2]; }
+  if (mon >= 0 && day >= 1 && day <= 31) { const d = new Date(); d.setHours(12, 0, 0, 0); d.setMonth(mon, day); if (ymd(d) < todayStr()) d.setFullYear(d.getFullYear() + 1); return d; }
+  return null;
+}
+const tidy = v => v.replace(/\s+(so much|a lot|very much|too|really)$/i, '').replace(/^(the|a|an)\s+/i, '').trim();
+const RELS = 'best friend|friend|mom|mum|mother|dad|father|amma|appa|sister|brother|akka|anna|thambi|thangachi|wife|husband|son|daughter|cat|dog|boss|teacher|partner|grandma|grandpa|paati|thatha|patti';
+function extractMemories(text) {
+  const out = [], t = text.trim(); let m;
+  const name = nameIn(t); if (name) out.push({ type: 'name', key: 'name', value: name, label: `Your name is ${name}`, ack: `Nice to meet you, ${name}! I'll remember your name.` });
+  if ((m = t.match(/\bmy birthday is\s+(?:on\s+)?(.{3,20}?)(?:[.!,]|$)/i))) {
+    const d = parseWhen('on ' + m[1]); if (d) out.push({ type: 'birthday', key: 'birthday', value: `${d.getDate()} ${d.toLocaleString('en', { month: 'long' })}`, md: `${d.getMonth() + 1}-${d.getDate()}`, label: `Your birthday is ${d.getDate()} ${d.toLocaleString('en', { month: 'long' })}`, ack: "Your birthday! I'll never forget it." });
+  }
+  const ev = [new RegExp("\\bi(?:\\s+have|'ve got|\\s+got|'ve)\\s+(?:an?\\s+|my\\s+|the\\s+)?([a-z][a-z ]{2,28}?)\\s+" + WHEN, 'i'), new RegExp('\\bmy\\s+([a-z][a-z ]{2,28}?)\\s+is\\s+' + WHEN, 'i')];
+  for (const re of ev) {
+    if ((m = t.match(re))) {
+      const thing = tidy(m[1]).toLowerCase(), d = parseWhen(m[2]);
+      if (d && !/birthday/.test(thing)) { out.push({ type: 'event', key: thing, value: thing, date: ymd(d), label: `Your ${thing} on ${d.toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' })}`, ack: `Your ${thing} ${m[2].toLowerCase()}? I'll remember, and I'll ask you how it went.` }); break; }
+    }
+  }
+  if ((m = t.match(/\bmy\s+fav(?:ou?rite)?\s+([a-z ]{2,20}?)\s+is\s+([^.,!?;]{2,30})/i))) out.push({ type: 'fav', key: m[1].toLowerCase(), value: tidy(m[2]), label: `Your favourite ${m[1].toLowerCase()} is ${tidy(m[2])}`, ack: `${tidy(m[2])} is your favourite ${m[1].toLowerCase()}. Noted in my little moon heart.` });
+  if ((m = t.match(/\bi\s+(?:really\s+|absolutely\s+|just\s+)?(?:like|love|enjoy|adore)\s+([^.,!?;]{2,40})/i))) {
+    const v = tidy(m[1]); if (!/^(you|u|it|that|this|them|nila|you nila|you too)\b/i.test(v)) out.push({ type: 'like', key: v.toLowerCase(), value: v, label: `You love ${v}`, ack: `Ooh, you love ${v}! I'll remember that.` });
+  }
+  if ((m = t.match(/\bi\s+(?:really\s+)?(?:hate|dislike|don'?t like|do not like|can'?t stand)\s+([^.,!?;]{2,40})/i))) {
+    const v = tidy(m[1]); if (!/^(you|u|it|that|this)\b/i.test(v)) out.push({ type: 'dislike', key: v.toLowerCase(), value: v, label: `You don't like ${v}`, ack: `No ${v} then. Got it.` });
+  }
+  const pe = t.match(new RegExp("\\bmy\\s+(" + RELS + ")(?:'s name is|\\s+is called|\\s+is named|\\s+named)\\s+([a-z][a-z'-]{1,20})", 'i'))
+          || t.match(new RegExp('\\bmy\\s+(' + RELS + '),?\\s+([A-Z][a-zA-Z\'-]{1,20})\\b', 'i'));
+  if (pe && /^[A-Za-z\u0B80-\u0BFF]/.test(pe[2]) && !/^(is|was|and|has|had|who|will|said|told|loves|likes)$/i.test(pe[2]) && (pe[0].match(/name|called|named/i) || /^[A-Z]/.test(pe[2]))) {
+    const nm = pe[2][0].toUpperCase() + pe[2].slice(1), rel = pe[1].toLowerCase();
+    out.push({ type: 'person', key: rel + ':' + nm.toLowerCase(), value: nm, rel, label: `${nm} is your ${rel}`, ack: `${nm}, your ${rel}. I'll remember.` });
+  }
+  if ((m = t.match(/\bi\s+(?:live|stay)\s+in\s+([A-Za-z][A-Za-z ]{1,30})/i)) || (m = t.match(/\bi(?:'m| am)\s+from\s+([A-Za-z][A-Za-z ]{1,30})/i))) out.push({ type: 'home', key: 'home', value: tidy(m[1]), label: `You're from ${tidy(m[1])}`, ack: `${tidy(m[1])}! I shine over there every night.` });
+  if ((m = t.match(/\bi\s+(?:work\s+(?:as|at)|am working as|study)\s+(?:an?\s+)?([^.,!?;]{2,40})/i))) out.push({ type: 'work', key: 'work', value: tidy(m[1]), label: `You work or study: ${tidy(m[1])}`, ack: `So you do ${tidy(m[1])}. I'm proud of you already.` });
+  if (!/\?/.test(t) && (m = t.match(/(?:^|[.!]\s+|please\s+)remember\s+(?:that\s+)?(.{3,140})/i)) && !/remember me\b/i.test(t)) out.push({ type: 'note', key: m[1].toLowerCase(), value: m[1].replace(/[.!]+$/, ''), label: m[1].replace(/[.!]+$/, ''), ack: "I'll remember that. Promise." });
+  return out;
+}
+function memorySummary() {
+  const items = memItems(); if (!items.length) return "I don't know much about you yet. Tell me something about yourself!";
+  const bits = [], by = t => items.filter(x => x.type === t);
+  if (myName()) bits.push(`your name is ${myName()}`);
+  by('home').forEach(x => bits.push(`you're from ${x.value}`));
+  const likes = by('like').slice(-3).map(x => x.value); if (likes.length) bits.push(`you love ${likes.join(', ')}`);
+  by('person').slice(-2).forEach(x => bits.push(`${x.value} is your ${x.rel}`));
+  by('birthday').forEach(x => bits.push(`your birthday is ${x.value}`));
+  const up = by('event').filter(x => x.date >= todayStr()).slice(0, 1); up.forEach(x => bits.push(`you have your ${x.value} coming up`));
+  if (!bits.length) bits.push(`${items.length} little things you told me`);
+  const last = bits.pop();
+  return `I remember that ${bits.length ? bits.join(', ') + ' and ' : ''}${last}. Tap the dots at the top to see everything.`;
+}
+function recallFor(text) {
+  const low = text.toLowerCase();
+  for (const x of memItems()) {
+    if (x.type === 'person' && low.includes(x.value.toLowerCase())) return `${x.value}! How is your ${x.rel} doing?`;
+    if ((x.type === 'like' || x.type === 'fav') && x.value.length > 2 && low.includes(x.value.toLowerCase())) return `You love ${x.value}! That's one of my favourite things about you.`;
+    if (x.type === 'dislike' && x.value.length > 2 && low.includes(x.value.toLowerCase())) return `Oh no, ${x.value}. I know you don't like that.`;
+  }
+  return null;
+}
+function recallGreeting() {
+  const today = todayStr(), md = `${new Date().getMonth() + 1}-${new Date().getDate()}`;
+  const bday = memItems().find(x => x.type === 'birthday' && x.md === md);
+  if (bday) return { line: `Happy birthday${you()}! The whole sky is celebrating you.`, party: true };
+  const ev = memItems().filter(x => x.type === 'event');
+  const now_ = ev.find(x => x.date === today && x.greeted !== today);
+  if (now_) { updateMemory(now_.id, { greeted: today }); return { line: `Today is your ${now_.value}${you()}! You've got this.` }; }
+  const after = ev.find(x => x.date < today && !x.asked && (Date.parse(today) - Date.parse(x.date)) <= 7 * 864e5);
+  if (after) { updateMemory(after.id, { asked: true }); return { line: `How did your ${after.value} go${you()}? I've been wondering.` }; }
+  return null;
+}
+const STRESS = /\b(stress|stressed|anxious|anxiety|panic|panicking|overwhelmed|can'?t sleep|nervous|tense|restless|scared)\b/i;
+
+function replyFor(text, m, costume, found) {
+  const s = text.toLowerCase().trim();
+  if (/what do you (remember|know) about me|do you remember me|what have i told you/i.test(s)) return { text: memorySummary() };
+  let fm;
+  if ((fm = s.match(/\bforget\s+(?:about\s+)?(.+)/i)) && !found.length) {
+    if (/^(everything|all|it all)\b/.test(fm[1])) return { text: 'If you want me to forget everything, tap the dots at the top and choose "Forget everything".', action: 'more' };
+    const term = fm[1].replace(/[.!?]+$/, '').trim(), hits = memItems().filter(x => x.label.toLowerCase().includes(term) || String(x.value).toLowerCase().includes(term));
+    hits.forEach(x => forgetMemory(x.id));
+    return { text: hits.length ? "Okay. I've let that memory float away." : "I don't think I was holding on to that." };
+  }
+  if (found.length) return { text: found.map(f => f.ack).slice(0, 2).join(' '), remembered: true };
+  if (STRESS.test(s)) return { text: `That sounds like a lot${you()}. Want to breathe with me for a minute?`, action: 'breathe' };
+  if (/\b(weather|raining|rain|hot|temperature|climate|cloudy|humid)\b/.test(s) && !costume) return { text: weatherLine() };
+  if (costume) return { text: COSTUMES[costume].line };
+  const rec = recallFor(text); if (rec) return { text: rec };
+  if (/^(hi|hello|hey|hii|vanakkam|yo)\b/.test(s)) return { text: `Vanakkam${you()}! I can't think for real yet, but I'm right here with you.` };
+  if (m > 0.3) return { text: `That makes me glow a little brighter${you()}!` };
+  if (m < -0.3) return { text: `I'm sorry it feels heavy tonight${you()}. I'm staying right here. Would writing it in the journal help?`, action: 'journal' };
+  if (s.includes('?')) return { text: "Good question. Once my brain is connected, I'll answer it properly." };
+  return { text: pick(["Noted! I'm keeping it safe in orbit.", `Mm-hmm. Tell me more${you()}.`, "I'm only an avatar for now, but I love hearing from you."]) };
+}
+function lantern(text) { const d = document.createElement('div'); d.className = 'lantern'; d.textContent = text; app.appendChild(d); d.addEventListener('animationend', () => d.remove()); }
+function capAction(kind) {
+  const box = q('#capActions'); box.innerHTML = '';
+  const make = (label, fn, solid) => { const b = document.createElement('button'); b.className = 'pill' + (solid ? ' solid' : ''); b.textContent = label; b.addEventListener('click', () => { box.innerHTML = ''; fn(); }); box.appendChild(b); };
+  if (kind === 'breathe') { make('Breathe with Nila', startBreathing, true); make('Not now', () => {}); }
+  if (kind === 'journal') make('Open the journal', () => openSheet('journalSheet'), true);
+  if (kind === 'more') make('Show memories', () => openSheet('moreSheet'), true);
+}
+function send() {
+  const text = input.value.trim(); if (!text) return;
+  markActivity(); speakTok++; lantern(text); input.value = ''; q('#capActions').innerHTML = '';
+  mood = sentiment(text); const wasQ = /\?/.test(text); question = false; typedLove = typedWow = false;
+  const found = extractMemories(text), saved = found.filter(f => addMemory(f));
+  const costume = manualCostume || found.length ? null : detectCostume(text);
+  if (!manualCostume) { topicCostume = costume; topicUntil = costume ? Infinity : 0; }
+  setState('thinking'); setCaption('');
+  if (wasQ) emote('?', 1.2);
+  const tok = speakTok, wait = 1500 + Math.random() * 900;
+  setTimeout(() => { if (tok === speakTok && state === 'thinking') { emote('!', .9); hop(.6); } }, wait - 450);
+  setTimeout(() => {
+    if (tok !== speakTok || state !== 'thinking') return;
+    const r = replyFor(text, mood, costume, found);
+    if (r.remembered) { play('heart', 1.6); burst('sparkle', 7, 150 + ox, 60 + oy); Sound.sparkle(); if (saved.length) renderMemories(); }
+    if (r.action === 'breathe') { mood = -.3; }
+    reply(r.text, () => { if (r.action) capAction(r.action); if (mood > 0.3) { play('giggle', 1.2); hop(); burst('heart', 3, 150 + ox, 70 + oy); Sound.heart(); } });
+  }, wait);
+}
+
+/* ---------- Microphone ---------- */
+async function startMic() {
+  speakTok++; markActivity(); wake(); listenSim = false;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(micStream);
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 512; micBuf = new Uint8Array(analyser.fftSize); src.connect(analyser);
+    setCaption("I'm listening…");
+  } catch (err) { analyser = null; listenSim = true; setCaption("The microphone isn't available here, so Nila is pretending to hear you."); }
+  setState('listening'); q('#mic').setAttribute('aria-pressed', 'true');
+}
+function stopMic() {
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close().catch(() => {});
+  micStream = audioCtx = analyser = null; listenSim = false; q('#mic').setAttribute('aria-pressed', 'false');
+}
+q('#mic').addEventListener('click', () => {
+  if (state === 'listening') {
+    setState('thinking'); const tok = ++speakTok;
+    setTimeout(() => { if (tok === speakTok) reply('I heard you! Understanding voices comes when we connect my brain.'); }, 1100);
+  } else startMic();
+});
+
+/* ---------- Touch: tap, hold to cuddle, drag ---------- */
+const TAPS = {
+  giggle: () => { play('giggle', 1.3); hop(); Sound.giggle(); reply(pick(['Hehe, that tickles!', 'Hihi! Again?'])); },
+  bleh:   () => { play('bleh', 1.3); play('wink', 1.3); Sound.boop(); reply('Bleh!'); },
+  spin:   () => { spin(); play('giggle', 1); Sound.sparkle(); burst('sparkle', 8, 150 + ox, 140 + oy); reply('Wheee, a moonspin!'); },
+  heart:  () => { play('heart', 1.8); Sound.heart(); burst('heart', 5, 150 + ox, 80 + oy); reply(`Aww, I like you too${you()}.`); },
+  boop:   () => { play('surprise', .5); sq = .16; Sound.boop(); emote('!', .8); reply('Boop!'); },
+  wink:   () => { play('wink', .9); play('cat', 1.4); Sound.tap(); reply(pick(['Hey you.', 'Psst, you are my favourite.'])); }
+};
+function toSvg(e) { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const m = svg.getScreenCTM(); return m ? pt.matrixTransform(m.inverse()) : { x: 150, y: 140 }; }
+let down = null;
+svg.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  svg.setPointerCapture(e.pointerId);
+  down = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: now(), crater: e.target.closest('.crater'), moved: 0 };
+  dragTravel = 0; markActivity(); cuddleX = toSvg(e).x;
+});
+svg.addEventListener('pointermove', e => {
+  if (!down) return;
+  const step = Math.hypot(e.clientX - down.lx, e.clientY - down.ly);
+  dragTravel += step; down.lx = e.clientX; down.ly = e.clientY;
+  if (cuddle) { cuddleX = toSvg(e).x; petting = Math.min(1, petting + step * .02); return; }
+  const dx = e.clientX - down.x, dy = e.clientY - down.y;
+  down.moved = Math.max(down.moved, Math.hypot(dx, dy));
+  if (down.moved > 8) {
+    if (!dragging) { dragging = true; emote('!', .8); Sound.boop(); }
+    const k = 300 / svg.getBoundingClientRect().width;
+    ox = dx * k * .55 / (1 + Math.abs(dx) / 400); oy = dy * k * .55 / (1 + Math.abs(dy) / 400);
+  }
+});
+function release() {
+  if (!down) return;
+  const wasDrag = dragging, wasCuddle = cuddle, held = now() - down.t; dragging = false; cuddle = false; const t = now();
+  if (wasCuddle) {
+    if (held > 1.4) reply(pick([`That was nice${you()}.`, 'More cuddles later?', 'I feel so loved.', 'You make the night warmer.']));
+  } else if (wasDrag) {
+    sq = -.12;
+    if (dragTravel > 900) { play('dizzy', 2.4); Sound.dizzy(); reply('Whoa… the stars are spinning.'); }
+    else if (Math.hypot(ox, oy) > 25 && state !== 'sleeping') reply('Wheee!');
+  } else if (wake()) {
+    reply(`Oh! I was dreaming about stars${you()}.`);
+  } else if (down.crater) {
+    down.crater.classList.remove('wobble'); void down.crater.getBBox(); down.crater.classList.add('wobble');
+    sq = .08; play('cat', 1.5); play('star', .6); Sound.tap(); Sound.sparkle(); reply("That's my favourite crater.");
+  } else {
+    tapTimes = tapTimes.filter(x => t - x < 2); tapTimes.push(t);
+    if (tapTimes.length >= 5) { tapTimes = []; play('dizzy', 2.2); Sound.dizzy(); sq = .15; reply('Too many boops! Everything is spinning.'); }
+    else { sq = .13; const keys = Object.keys(TAPS).filter(k => k !== lastTapReact); lastTapReact = pick(keys); TAPS[lastTapReact](); }
+  }
+  down = null;
+}
+svg.addEventListener('pointerup', release);
+svg.addEventListener('pointercancel', release);
+svg.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); down = { crater: null, t: now() }; release(); } });
+window.addEventListener('pointermove', e => {
+  const r = svg.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * .5;
+  look = { x: clamp((e.clientX - cx) / r.width * 16, -7, 7), y: clamp((e.clientY - cy) / r.height * 16, -6, 6) };
+  pointerNear = clamp(1 - Math.hypot(e.clientX - cx, e.clientY - cy) / (r.width * .9));
+  pointerSeen = now();
+}, { passive: true });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = now(); return; }
+  if (hiddenAt && now() - hiddenAt > 6) {
+    markActivity(); if (!wake()) { play('surprise', .5); hop(); }
+    setTimeout(() => { play('heart', 1.4); reply(pick([`You're back${you()}!`, `I missed you${you()}.`])); }, 500);
+  }
+});
+
+/* ---------- Shooting stars she notices ---------- */
+function meteor() {
+  const m = document.createElement('div'); m.className = 'meteor';
+  const leftSide = Math.random() < .5, x = leftSide ? rnd(25, 45) : rnd(70, 95);
+  m.style.left = x + '%'; m.style.top = rnd(6, 26) + '%';
+  q('.sky').appendChild(m); m.addEventListener('animationend', () => m.remove());
+  if (state === 'idle' || state === 'attentive') {
+    look = { x: leftSide ? -6 : 6, y: -6 }; pointerSeen = now() - 1.5;
+    play('star', 1); emote('✦', 1.3);
+  }
+  Sound.meteor();
+}
+
+/* ---------- Chips ---------- */
+function demoTyping() {
+  const text = 'why do stars twinkle?';
+  speakTok++; clearInterval(demoTimer); input.value = ''; setCaption('');
+  let i = 0;
+  demoTimer = setInterval(() => {
+    input.value = text.slice(0, ++i); onType(false);
+    if (i >= text.length) { clearInterval(demoTimer); demoTimer = setTimeout(() => { input.value = ''; mood = 0; question = false; topicUntil = now() + 2; setState('idle'); }, 1800); }
+  }, 120);
+}
+qa('.states .chip').forEach(c => c.addEventListener('click', () => {
+  markActivity(); speakTok++; clearInterval(demoTimer); clearTimeout(demoTimer);
+  const s = c.dataset.state;
+  if (s !== 'listening' && state === 'listening') stopMic();
+  if (s === 'typing') return demoTyping();
+  if (s === 'replying') return reply("Hi, I'm Nila! Hold me for a cuddle, or type and watch me read along.");
+  if (s === 'listening') { listenSim = true; analyser = null; setState('listening'); setCaption('Pretending to listen. Use the mic button for your real voice.'); return; }
+  if (s === 'happy') { setState('happy'); setCaption(''); burst('confetti', 16, 150 + ox, 60 + oy); happyTimer = setTimeout(() => { if (state === 'happy') setState('idle'); }, 2800); return; }
+  setCaption(''); setState(s);
+}));
+wardrobe.addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  markActivity(); wake();
+  const k = b.dataset.costume;
+  manualCostume = k === 'none' ? null : (manualCostume === k ? null : k);
+  if (k === 'none') { topicCostume = null; topicUntil = 0; }
+  qa('.wardrobe .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.costume === manualCostume)));
+  if (manualCostume) reply(COSTUMES[manualCostume].line);
+});
+
+/* ---------- Pose targets ---------- */
+function targets(t) {
+  const recentPointer = t - pointerSeen < 2.5;
+  const T = { lean: reduce ? 0 : 2 * Math.sin(t * .7), open: 1, gx: look.x, gy: look.y, mw: 9, mo: 0, ms: 4 + mood * 3, mxo: 0,
+    bl: 0, br: 0, sad: Math.max(0, -mood), angry: 0, browVis: mood < -.2 ? .9 : 0, blush: .35 + Math.max(0, mood) * .45, puff: 0,
+    happy: 0, star: 0, heart: 0, swirl: 0, wink: 0, cat: 0, bleh: 0, tear: mood < -.3 ? 1 : 0, sweat: 0,
+    thought: 0, waves: 0, zzz: 0, shade: .2, tide: 36, glow: SKY.glow, near: 1, drift: 0, dy: 0 };
+  if (mood < -.2) T.ms = -2;
+  if (WX.info.hot) { T.blush += .25; if (Math.sin(t * .9) > .6) T.sweat = .9; }
+  if (WX.info.fog) T.open = .88;
+  // She leans toward you and comes a little closer when your finger is near.
+  if (recentPointer) { T.drift = look.x * 1.4; T.lean += look.x * .7; T.near = 1 + pointerNear * .05; T.blush += pointerNear * .2; }
+  const detective = activeCostume === 'detective';
+
+  switch (state) {
+    case 'attentive': Object.assign(T, { gx: look.x * .3, gy: 4, open: 1.08, mw: 10, ms: 5, near: 1.05, blush: T.blush + .1 }); break;
+    case 'typing':
+      // Peeking: she sinks toward the text box, leans over to your caret and reads along.
+      Object.assign(T, { gx: caretGX, gy: 6.5, dy: 24, drift: caretGX * 2.2, lean: caretGX * 1.6 + peekSide * 5,
+        open: .9, mw: 4, mo: 3, ms: 1, near: 1.08, browVis: .8, bl: peekSide > 0 ? .9 : 0, br: peekSide > 0 ? 0 : .9, blush: T.blush + .1 });
+      if (on('peek')) Object.assign(T, { dy: 36, open: 1.18, mo: 5, mw: 5, lean: T.lean + peekSide * 5 });
+      if (question) Object.assign(T, { lean: peekSide * 12, bl: .9, br: .9, browVis: 1, mw: 5, mo: 5, ms: 1 });
+      if (typedLove) Object.assign(T, { heart: 1, blush: 1, ms: 6 });
+      else if (typedWow) Object.assign(T, { star: 1, mo: 5, ms: 4 });
+      break;
+    case 'listening':
+      Object.assign(T, { lean: Math.sin(t * 3.2) * (2 + level * 6), happy: .3 + level * .4, gx: 0, gy: 1, mw: 8, ms: 5,
+        waves: .35 + level * .65, glow: .85 + level * .35, blush: .45, near: 1.05 });
+      break;
+    case 'thinking':
+      Object.assign(T, { gx: -6 + Math.sin(t * .8) * 2, gy: -6, mw: 5, ms: -1, mxo: 6, bl: 1, br: -.3, browVis: 1, thought: 1, lean: -6 + Math.sin(t * .9) * 2, tide: 37, drift: 0 });
+      if (detective) Object.assign(T, { gx: Math.sin(t * 1.6) * 6, gy: 1, lean: Math.sin(t * 1.6) * 6, thought: .4 });
+      break;
+    case 'replying':
+      Object.assign(T, { lean: Math.sin(t * 1.2) * 2.5, gx: 0, gy: 2, mw: 10, ms: 5 + Math.max(0, mood) * 2,
+        happy: .35 + Math.max(0, mood) * .4, blush: .45 + Math.max(0, mood) * .4, tide: 39, near: 1.04, glow: 1.12 });
+      break;
+    case 'happy':
+      Object.assign(T, { happy: 1, mw: 12, mo: 9, ms: 7, blush: .95, tide: 42, glow: 1.25, lean: Math.sin(t * 4) * 6 });
+      if (t - lastHop > .6) { hop(.9); lastHop = t; if (Math.random() < .5) burst('sparkle', 3, 150 + ox, 70 + oy); }
+      break;
+    case 'sleepy': {
+      const y = (t - stateT) % 6, yawn = y < 1.6 ? Math.sin(Math.PI * y / 1.6) : 0;
+      Object.assign(T, { open: .45 - yawn * .35, mw: 6, mo: yawn * 12, ms: 1, lean: 4, shade: .34, gx: 0, gy: 3, tide: 35, tear: yawn > .8 ? .6 : 0, near: .98 });
+      break;
+    }
+    case 'breathing':
+      Object.assign(T, { open: .03, happy: 0, cat: 0, mw: 6, mo: 0, ms: 3, lean: 0, gx: 0, gy: 0, drift: 0, sweat: 0, tear: 0,
+        near: .92 + breathB * .2, blush: .4 + breathB * .35, glow: .8 + breathB * .6, browVis: 0, sad: 0 });
+      break;
+    case 'sleeping':
+      Object.assign(T, { open: .02, mw: 5, mo: 2.5, ms: 1, lean: 8, zzz: 1, shade: .55, gx: 0, gy: 2, tide: 34, glow: .5, blush: .4, near: .97, drift: 0 });
+      break;
+  }
+
+  if (on('nod'))    T.lean += Math.sin((t - ovStart.nod) * 10) * 3;
+  if (on('flinch')) Object.assign(T, { open: .03, happy: 0, mw: 7, mo: 2, ms: -2, sweat: 1, lean: T.lean + Math.sin(t * 40) * 2.5, bl: .6, br: .6, browVis: .8 });
+  if (on('cloudPeek')) Object.assign(T, { gx: cloudSide * 7, gy: -2, lean: cloudSide * 6, bl: .6, br: .6, browVis: .6 });
+  if (on('hum'))    Object.assign(T, { happy: .75, mw: 5, mo: 3, ms: 2, lean: Math.sin(t * 2.5) * 7, blush: .5 });
+  if (on('look'))   { const p = (t - ovStart.look) / 2.4; Object.assign(T, { gx: Math.sin(p * Math.PI * 2) * 8, gy: -2, lean: Math.sin(p * Math.PI * 2) * 5 }); }
+  if (on('cat'))    Object.assign(T, { cat: 1, happy: .8, blush: .55 });
+  if (on('tilt'))   Object.assign(T, { lean: 9, bl: .8, br: .8, browVis: 1 });
+  if (on('pout'))   Object.assign(T, { puff: 1, mw: 5, mo: 2.5, ms: -1, angry: .9, browVis: 1, gx: 0, gy: 3, blush: .7, happy: 0 });
+  if (on('giggle')) Object.assign(T, { happy: 1, mw: 12, mo: 9, ms: 7, blush: .95, cat: 0 });
+  if (on('heart'))  Object.assign(T, { heart: 1, happy: 0, blush: 1, mw: 9, mo: 4, ms: 6 });
+  if (on('star'))   Object.assign(T, { star: 1, happy: 0, mo: Math.max(T.mo, 5), mw: 8, ms: 4 });
+  if (on('bleh'))   Object.assign(T, { bleh: 1, mw: 8, mo: 0, ms: 3, cat: 0 });
+  if (on('wink'))   Object.assign(T, { wink: 1, ms: Math.max(T.ms, 6), blush: Math.max(T.blush, .55) });
+  if (on('sweat'))  T.sweat = 1;
+  if (on('dizzy'))  Object.assign(T, { swirl: 1, happy: 0, star: 0, heart: 0, mw: 9, mo: 3, ms: -2, sweat: 1, lean: Math.sin(t * 6) * 8, cat: 0 });
+  if (on('surprise')) Object.assign(T, { open: 1.35, happy: 0, star: 0, swirl: 0, wink: 0, mw: 6, mo: 13, ms: 0, bl: 1, br: 1, browVis: 1, zzz: 0, cat: 0 });
+  if (cuddle) Object.assign(T, { happy: 1, cat: .6, blush: 1, near: 1.07, lean: clamp((cuddleX - 150) * .12, -12, 12) + Math.sin(t * 7) * petting * 3, glow: 1.3, gx: 0, gy: 0 });
+  if (dragging) Object.assign(T, { open: 1.2, happy: 0, cat: 0, mw: 8, mo: 9, ms: 1, lean: clamp(-ox * .15, -12, 12), sweat: .7 });
+  if (t < winceUntil) Object.assign(T, { ms: -3, mw: 9, mo: 1, open: T.open * .8 });
+  return T;
+}
+const RATE = { dy: 6, gx: 14, gy: 14, mw: 16, mo: 16, ms: 12, tide: 1.2, shade: 1.2, glow: 3, happy: 12, star: 12, heart: 12, swirl: 10, wink: 16, near: 5, drift: 3 };
+function costumeFor(t) {
+  if (manualCostume) return manualCostume;
+  if (topicCostume && t < topicUntil) return topicCostume;
+  if (state === 'listening') return 'headphones';
+  if (state === 'sleeping' || state === 'sleepy') return 'nightcap';
+  if (state === 'breathing') return null;
+  if (WX.info.rain > 0) return 'umbrella';
+  return null;
+}
+
+/* ---------- Loop ---------- */
+let prev = now();
+function frame() {
+  const t = now(), dt = Math.min(.05, t - prev); prev = t;
+  const idleFor = t - lastActive;
+
+  const lateNight = new Date().getHours() < 5, sleepAt = (lateNight ? 25 : 40) / Math.max(.7, SKY.energy);
+  if ((state === 'idle' || state === 'attentive') && idleFor > sleepAt) setState('sleepy');
+  if (state === 'sleepy' && idleFor > sleepAt + 20) setState('sleeping');
+  if (state === 'breathing') { markActivity(); updateBreathing(t); }
+  updateWeather(t, dt);
+  if (state === 'sleeping' && t > nextSnore) { Sound.snore(); nextSnore = t + 3.4; }
+  if (WX.info.crickets && (new Date().getHours() >= 18 || new Date().getHours() < 6) && t > nextCricket && state !== 'breathing') { Sound.cricket(); nextCricket = t + rnd(1.2, 4.5); }
+  if (state === 'typing' && t - lastKey > 1.4) setState(input.value ? 'attentive' : restState());
+  if (state !== 'typing' && state !== 'replying') mood *= Math.exp(-dt / 25);
+  if (topicCostume && t > topicUntil) topicCostume = null;
+
+  // hold still on her to cuddle
+  if (down && !dragging && !cuddle && down.moved < 8 && t - down.t > .35) { cuddle = true; petting = 0; emote('♥', 1.2); sq = .06; Sound.heart(); }
+  if (cuddle) { petting *= Math.exp(-dt * 1.5); if (Math.random() < dt * (1.5 + petting * 4)) spawn('heart', 150 + ox + rnd(-50, 50), 70 + oy + hopY); markActivity(); }
+
+  if (state === 'idle' && idleFor > 4 && t > nextIdleAct && !dragging && !cuddle) {
+    const acts = [...SKY.acts, ...(WX.info.hot ? ['pant'] : [])].filter(a => a !== lastIdleAct);
+    lastIdleAct = pick(acts);
+    if (lastIdleAct === 'hum') play('hum', 3.4);
+    if (lastIdleAct === 'look') play('look', 2.4);
+    if (lastIdleAct === 'wink') { play('wink', .6); play('cat', 1.2); }
+    if (lastIdleAct === 'sparkle') { play('star', 1.1); burst('sparkle', 6, 150 + ox, 130 + oy); }
+    if (lastIdleAct === 'cat') play('cat', 3);
+    if (lastIdleAct === 'hop') { hop(.8); setTimeout(() => hop(.6), 450); }
+    if (lastIdleAct === 'spin') spin();
+    if (lastIdleAct === 'slowblink') { look = { x: 0, y: 1 }; blinkStart = t; slowBlink = true; }
+    if (lastIdleAct === 'pant') { play('bleh', 1.6); play('sweat', 2); emote('…', 1.2); }
+    nextIdleAct = t + rnd(SKY.gap[0], SKY.gap[1]);
+  }
+  if (state === 'idle' && idleFor > 22 && !pouted) { pouted = true; play('pout', 3); emote('…', 2.4); setCaption(`Psst… still there${you()}?`); }
+  if (on('hum') && Math.random() < dt * 2.2) { spawn('note', 215 + ox, 95 + oy + hopY); Sound.note(); }
+  if (t > nextMeteor) { meteor(); nextMeteor = t + rnd(16, 32); }
+
+  if (t - pointerSeen > 3 && t > nextGlance) { look = Math.random() < .5 ? { x: 0, y: 0 } : { x: rnd(-5.5, 5.5), y: rnd(-4, 4) }; nextGlance = t + rnd(1.5, 4.5); }
+
+  let lvlT = 0;
+  if (state === 'listening') {
+    if (analyser) { analyser.getByteTimeDomainData(micBuf); let sum = 0; for (let i = 0; i < micBuf.length; i++) { const v = (micBuf[i] - 128) / 128; sum += v * v; } lvlT = clamp(Math.sqrt(sum / micBuf.length) * 5); }
+    else if (listenSim) lvlT = clamp(.35 + .35 * Math.sin(t * 5.3) * Math.sin(t * 2.1 + 1) + .3 * Math.max(0, Math.sin(t * 9)));
+  }
+  level += (lvlT - level) * (1 - Math.exp(-12 * dt));
+
+  const T = targets(t);
+  for (const k in cur) { const r = RATE[k] || 9; cur[k] += (T[k] - cur[k]) * (1 - Math.exp(-r * dt)); }
+  const c = cur;
+
+  // costumes
+  const want = costumeFor(t);
+  if (want !== activeCostume) {
+    activeCostume = want;
+    burst('puff', 6, 150 + ox, 50 + oy + hopY); hop(.6); Sound.poof();
+    if (want === 'party') burst('confetti', 18, 150 + ox, 30 + oy);
+    if (want === 'crown') burst('sparkle', 8, 150 + ox, 40 + oy);
+    if (want === 'detective') play('tilt', .8);
+  }
+  for (const k in COSTUMES) { const s = COSTUMES[k]; const target = k === activeCostume ? 1 : 0; s.vel += (260 * (target - s.show) - 15 * s.vel) * dt; s.show += s.vel * dt; }
+  if (t > nextAmbient) {
+    nextAmbient = t + .35;
+    if (activeCostume === 'beanie') spawn('snow', 150 + ox + rnd(-110, 110), oy - 10);
+    if (activeCostume === 'chef' && Math.random() < .5) spawn('steam', 150 + ox + rnd(-20, 20), 10 + oy + hopY);
+    if (activeCostume === 'headphones' && Math.random() < .35 + level * .5) spawn('note', 245 + ox, 110 + oy + hopY);
+    if (activeCostume === 'crown' && Math.random() < .25) spawn('sparkle', 150 + ox + rnd(-40, 40), 30 + oy + hopY);
+  }
+
+  // blink (a slow blink is how she says "I trust you")
+  if (t > nextBlink && state !== 'sleeping') { blinkStart = t; slowBlink = false; nextBlink = t + rnd(2.5, 6); if (Math.random() < .2) nextBlink = t + .3; }
+  const bd = slowBlink ? .9 : .13, bp = (t - blinkStart) / bd;
+  const blink = bp >= 0 && bp < 1 ? (slowBlink ? 1 - Math.sin(Math.PI * bp) * .95 : .05) : 1;
+  if (slowBlink && bp >= 1) slowBlink = false;
+
+  // physics
+  sqv += (-220 * sq - 12 * sqv) * dt; sq += sqv * dt;
+  if (!dragging) { ovx += (-120 * ox - 11 * ovx) * dt; ovy += (-120 * oy - 11 * ovy) * dt; ox += ovx * dt; oy += ovy * dt; } else ovx = ovy = 0;
+  if (hopY < 0 || hopV < 0) { hopV += 1300 * dt; hopY += hopV * dt; if (hopY >= 0) { hopY = 0; sq = Math.min(.14, hopV / 2200); hopV = 0; } }
+  const sp = clamp((t - spinStart) / .85), spinRot = 360 * (sp < .5 ? 2 * sp * sp : 1 - Math.pow(-2 * sp + 2, 2) / 2);
+  const breath = reduce ? 0 : Math.sin(t * (state === 'sleeping' ? 1.3 : 2)) * .012;
+  const sx = (1 + sq * .5 - breath * .5 + c.puff * .035) * c.near, sy = (1 - sq + breath - c.puff * .01) * c.near;
+  const bob = reduce || state === 'breathing' ? 0 : Math.sin(t * (state === 'sleeping' ? .6 : 1.1 * SKY.energy)) * 5 * Math.min(1.2, SKY.energy);
+  hatRotV += (140 * (-c.lean * .5 - hatRot) - 7 * hatRotV + sqv * 25) * dt; hatRot += hatRotV * dt;
+  const px = ox + c.drift, py = oy + c.dy;
+
+  R.rig.setAttribute('transform', `translate(${f1(px)} ${f1(py + bob + hopY)}) rotate(${f1(c.lean + (spinRot % 360))} 150 140) translate(150 228) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(-150 -228)`);
+  orbitAngle += dt * (4 + (c.glow - 1) * 30 + (cuddle ? 14 : 0));
+  const oscale = 1 + (state === 'breathing' ? breathB * .12 : 0);
+  R.orbit.setAttribute('transform', `translate(${f1(px * .5)} ${f1(oy * .5 + bob * .6 + hopY * .4)}) rotate(${f1(orbitAngle)} 150 140) translate(150 140) scale(${oscale.toFixed(3)}) translate(-150 -140)`);
+  const ring = q('#breathRing'), C = 2 * Math.PI * 108;
+  ring.setAttribute('opacity', state === 'breathing' ? '.55' : '0');
+  ring.setAttribute('stroke-dasharray', `${f1(C)} ${f1(C)}`); ring.setAttribute('stroke-dashoffset', f1(C * (1 - breathB)));
+  ring.setAttribute('transform', `translate(${f1(px * .5)} ${f1(oy * .5)}) rotate(-90 150 140)`);
+  if (activeCostume === 'umbrella' && t > nextDrip) { spawn('drip', 150 + px + pick([-72, 72]), 50 + oy + hopY + bob); nextDrip = t + rnd(.4, 1.1); }
+  orbitStars.forEach((st, i) => {
+    const tw = .55 + .45 * Math.sin(t * st.sp + st.ph);
+    st.el.setAttribute('opacity', f3(clamp(tw * clamp(c.glow, .35, 1.3) * (st.fresh ? 1 : .8))));
+    st.el.setAttribute('transform', `translate(${f1(st.x)} ${f1(st.y)}) rotate(${f1(-orbitAngle)}) scale(${(st.s * (st.fresh ? 1 + Math.max(0, 1.2 - (t - bornAt)) * 1.5 : 1)).toFixed(3)})`);
+  });
+  R.phase.setAttribute('opacity', f3(c.shade));
+  R.surface.setAttribute('transform', `translate(${f1(c.gx * .55)} ${f1(c.gy * .45)})`);
+  R.glimmer.style.setProperty('--gx', f1(px * 1.2) + 'px');
+
+  // eyes
+  const detShow = clamp(COSTUMES.detective.show, 0, 1.3);
+  const open = clamp(c.open * blink, 0, 1.4), shutBase = clamp((.25 - open) / .2);
+  const special = clamp(c.happy + c.star + c.heart + c.swirl);
+  eyes.forEach((e, i) => {
+    const shut = i ? Math.max(shutBase, c.wink) : shutBase;
+    const mag = i ? 1 + .4 * detShow : 1;
+    e.g.setAttribute('transform', `translate(${f1(e.x + c.gx)} ${f1(128 + c.gy)}) scale(${mag.toFixed(3)})`);
+    e.normal.setAttribute('opacity', f3((1 - special) * (1 - shut)));
+    e.open.setAttribute('transform', `scale(1 ${Math.max(open, .05).toFixed(3)})`);
+    e.hl.setAttribute('r', (3.9 + c.blush * .7).toFixed(2));
+    e.happy.setAttribute('opacity', f3(c.happy * (1 - shut)));
+    e.shut.setAttribute('opacity', f3(shut * (1 - c.happy * .5)));
+    e.star.setAttribute('opacity', f3(c.star * (1 - shut))); e.star.setAttribute('transform', `rotate(${f1(t * 60)}) scale(${(1 + Math.sin(t * 8) * .07).toFixed(3)})`);
+    e.heart.setAttribute('opacity', f3(c.heart * (1 - shut))); e.heart.setAttribute('transform', `scale(${(1 + Math.sin(t * 10) * .1).toFixed(3)})`);
+    e.swirl.setAttribute('opacity', f3(c.swirl)); e.swirl.setAttribute('transform', `rotate(${f1(t * (i ? -400 : 400))})`);
+  });
+  const bx = c.gx * .4, by = c.gy * .3;
+  R.browL.setAttribute('transform', `translate(${f1(120 + bx)} ${f1(106 - c.bl * 5 + by)}) rotate(${f1(-14 * c.sad + 14 * c.angry)})`);
+  R.browR.setAttribute('transform', `translate(${f1(180 + bx)} ${f1(106 - c.br * 5 + by)}) rotate(${f1(14 * c.sad - 14 * c.angry)})`);
+  R.browL.setAttribute('opacity', f3(c.browVis)); R.browR.setAttribute('opacity', f3(c.browVis));
+  const bl = f3(clamp(c.blush)), cheekS = (1 + c.puff * .35).toFixed(3);
+  [R.cheekL, R.cheekR].forEach((ch, i) => { const cx = (i ? 200 : 100) + c.gx * .5; ch.setAttribute('opacity', bl); ch.setAttribute('transform', `translate(${f1(cx)} 156) scale(${cheekS}) translate(${i ? -200 : -100} -156)`); });
+
+  // mouth: expressions only, no talking
+  const mx = 150 + c.gx * .5 + c.mxo, my = 163 + c.gy * .3, w = Math.max(3, c.mw), o = Math.max(0, c.mo);
+  R.mouth.setAttribute('d', `M${f1(mx - w)} ${f1(my)}Q${f1(mx)} ${f1(my + c.ms - o * .35)} ${f1(mx + w)} ${f1(my)}Q${f1(mx)} ${f1(my + c.ms + o)} ${f1(mx - w)} ${f1(my)}Z`);
+  R.mouth.setAttribute('opacity', f3(1 - c.cat));
+  R.tongue.setAttribute('cx', f1(mx)); R.tongue.setAttribute('cy', f1(my + (c.ms + o) / 2 - o * .16));
+  R.tongue.setAttribute('rx', f1(w * .42)); R.tongue.setAttribute('ry', f1(Math.max(.1, o * .18)));
+  R.tongue.setAttribute('opacity', f3(clamp((o - 6) / 4) * (1 - c.cat)));
+  R.cat.setAttribute('transform', `translate(${f1(mx)} ${f1(my)})`); R.cat.setAttribute('opacity', f3(c.cat));
+  R.bleh.setAttribute('transform', `translate(${f1(mx + 3)} ${f1(my + c.ms / 2 + 1)}) rotate(${f1(Math.sin(t * 9) * 6)})`); R.bleh.setAttribute('opacity', f3(c.bleh));
+
+  const tp = (t * .7) % 1;
+  R.tear.setAttribute('transform', `translate(${f1(111 + c.gx)} ${f1(146 + c.gy + tp * 22)}) scale(${(.6 + tp * .5).toFixed(2)})`);
+  R.tear.setAttribute('opacity', f3(c.tear * Math.sin(Math.PI * tp)));
+  R.sweat.setAttribute('transform', `translate(212 ${f1(92 + Math.sin(t * 3) * 3)})`); R.sweat.setAttribute('opacity', f3(c.sweat));
+
+  for (const k in COSTUMES) {
+    const s = COSTUMES[k], v = Math.max(0, s.show);
+    s.els.forEach(el => { el.setAttribute('opacity', f3(clamp(v * 1.4))); el.style.display = v < .01 ? 'none' : ''; });
+    if (v < .01) continue;
+    if (s.hat) {
+      const hat = q('#' + s.hat), ay = k === 'headphones' ? 136 : 72, wig = k === 'nightcap' ? Math.sin(t * 1.4) * 4 : 0;
+      hat.setAttribute('transform', `translate(0 ${f1(-sq * 18 - (1 - clamp(v)) * 20)}) rotate(${f1(hatRot + wig)} 150 ${ay}) translate(150 ${ay}) scale(${v.toFixed(3)}) translate(-150 -${ay})`);
+    }
+    if (s.back) q('#' + s.back).setAttribute('transform', `translate(150 136) scale(${v.toFixed(3)}) translate(-150 -136)`);
+    if (k === 'headphones') { const cs = (1 + level * .15).toFixed(3); R.cupL.setAttribute('transform', `translate(62 136) scale(${cs})`); R.cupR.setAttribute('transform', `translate(238 136) scale(${cs})`); }
+  }
+  const fx = 150 + c.gx * .6, fy = 128 + c.gy * .6, sh = Math.max(0, COSTUMES.shades.show), sc = Math.max(0, COSTUMES.scholar.show);
+  q('#g-shades').setAttribute('transform', `translate(${f1(fx)} ${f1(fy - (1 - clamp(sh)) * 70)})`);
+  q('#g-round').setAttribute('transform', `translate(${f1(fx)} ${f1(fy)}) scale(${sc.toFixed(3)})`);
+  const scan = state === 'thinking' && activeCostume === 'detective' ? Math.sin(t * 1.6) * 4 : 0;
+  q('#mag').setAttribute('transform', `translate(${f1(180 + c.gx + scan)} ${f1(128 + c.gy + Math.sin(t * 2) * 2)}) rotate(${f1(Math.sin(t * 1.3) * 6)}) scale(${detShow.toFixed(3)})`);
+
+  R.thoughts.forEach((b, i) => { const a = t * 1.3 + i * 2.094; b.setAttribute('cx', f1(150 + Math.cos(a) * 84)); b.setAttribute('cy', f1(30 + Math.sin(a) * 12)); b.setAttribute('opacity', f3(c.thought * (.5 + .5 * Math.sin(a)))); });
+  R.waves.forEach((p, i) => { const ph = (t * 1.6 + i / 3) % 1; p.setAttribute('transform', `translate(${f1(256 + ph * 22)} 136) scale(${(.6 + ph * .9).toFixed(2)})`); p.setAttribute('opacity', f3(c.waves * (1 - ph))); });
+  R.zzz.forEach((z, i) => { const ph = (t * .32 + i / 3) % 1; z.setAttribute('x', f1(212 + ph * 34 + i * 3)); z.setAttribute('y', f1(60 - ph * 50)); z.setAttribute('font-size', 14 + i * 5); z.setAttribute('opacity', f3(c.zzz * Math.sin(Math.PI * ph))); });
+  const eT = t < emoteUntil ? 1 : 0;
+  emoteV += (240 * (eT - emoteS) - 14 * emoteV) * dt; emoteS += emoteV * dt;
+  const es = Math.max(0, emoteS);
+  R.emote.setAttribute('transform', `translate(236 38) scale(${es.toFixed(3)})`); R.emote.setAttribute('opacity', f3(clamp(es * 1.5)));
+
+  updateParts(dt, t);
+  app.style.setProperty('--tide', c.tide.toFixed(2) + '%');
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+qa('.states .chip')[0].setAttribute('aria-pressed', 'true');
+
+/* ---------- Weather over Madurai ---------- */
+const MADURAI = { lat: 9.9252, lon: 78.1198 };
+const COND = {
+  clear:   { label: 'clear sky', clouds: 0, rain: 0, crickets: 1 },
+  partly:  { label: 'a few clouds', clouds: 3, rain: 0, crickets: 1 },
+  clouds:  { label: 'cloudy', clouds: 6, rain: 0, front: 1 },
+  mist:    { label: 'misty', clouds: 2, rain: 0, fog: 1 },
+  drizzle: { label: 'drizzle', clouds: 6, rain: .3, front: 1 },
+  rain:    { label: 'rain', clouds: 7, rain: .75, front: 1, dark: 1 },
+  storm:   { label: 'thunderstorm', clouds: 8, rain: 1, storm: 1, front: 1, dark: 1 },
+  hot:     { label: 'hot and dry', clouds: 0, rain: 0, hot: 1, crickets: 1 }
+};
+// What Madurai's sky usually does each month (used when live weather can't be reached).
+const CLIMATE = [
+  { w: { clear: 5, mist: 2, partly: 3 }, lo: 20, hi: 30 }, { w: { clear: 6, partly: 3, mist: 1 }, lo: 21, hi: 32 },
+  { w: { clear: 6, hot: 3, partly: 1 }, lo: 23, hi: 35 },  { w: { hot: 6, clear: 2, partly: 1, storm: 1 }, lo: 26, hi: 37 },
+  { w: { hot: 6, partly: 2, storm: 2 }, lo: 27, hi: 38 },  { w: { partly: 5, clouds: 3, hot: 2 }, lo: 27, hi: 36 },
+  { w: { partly: 5, clouds: 3, rain: 2 }, lo: 26, hi: 35 }, { w: { partly: 4, clouds: 3, rain: 3 }, lo: 26, hi: 35 },
+  { w: { partly: 3, clouds: 3, rain: 2, storm: 2 }, lo: 25, hi: 34 }, { w: { clouds: 3, rain: 4, storm: 2, partly: 1 }, lo: 24, hi: 32 },
+  { w: { rain: 4, clouds: 4, drizzle: 1, partly: 1 }, lo: 23, hi: 30 }, { w: { clouds: 4, drizzle: 2, partly: 3, mist: 1 }, lo: 22, hi: 29 }
+];
+const WX = { mode: 'auto', cond: 'clear', temp: null, live: false, info: COND.clear, clouds: [], front: null, drops: [] };
+function hashStr(str) { let h = 2166136261; for (const ch of str) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967296; }
+function typicalWeather() {
+  const d = new Date(), c = CLIMATE[d.getMonth()], h = d.getHours();
+  let r = hashStr(d.toDateString() + Math.floor(h / 4)), total = Object.values(c.w).reduce((a, b) => a + b, 0), cond = 'clear';
+  for (const [k, v] of Object.entries(c.w)) { r -= v / total; if (r <= 0) { cond = k; break; } }
+  if (cond === 'mist' && h > 9 && h < 20) cond = 'partly';
+  if (cond === 'storm' && h < 13) cond = 'clouds';
+  const k = Math.max(0, Math.cos((h - 14) / 24 * Math.PI * 2));
+  return { cond, temp: Math.round(c.lo + (c.hi - c.lo) * k), live: false };
+}
+function fromWmo(code, temp) {
+  if (code >= 95) return 'storm';
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+  if (code >= 51 && code <= 57) return 'drizzle';
+  if (code === 45 || code === 48) return 'mist';
+  if (code === 3) return 'clouds';
+  if (code === 2) return 'partly';
+  return temp >= 35 ? 'hot' : 'clear';
+}
+async function liveWeather() {
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 5000);
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${MADURAI.lat}&longitude=${MADURAI.lon}&current=temperature_2m,weather_code&timezone=Asia%2FKolkata`;
+    const j = await (await fetch(url, { signal: ctl.signal })).json();
+    const t = j.current.temperature_2m;
+    return { cond: fromWmo(j.current.weather_code, t), temp: Math.round(t), live: true };
+  } catch (e) { return null; } finally { clearTimeout(timer); }
+}
+function weatherLine() {
+  const w = WX.info.label, t = WX.temp;
+  if (WX.mode !== 'auto') return `Pretend weather: ${w}. Tap the dots to switch back to Madurai's sky.`;
+  if (WX.live) return `Right now in Madurai it's ${t}° with ${w === 'rain' || w === 'drizzle' ? 'some ' + w : w}.`;
+  return `I can't see Madurai's live sky from here, but on a night like this it's usually around ${t}° and ${w}.`;
+}
+const NS2 = NS;
+function cloudShape(fill, rim) {
+  const g = document.createElementNS(NS2, 'g');
+  [[-42, 10, 26], [-10, -6, 34], [26, 4, 28], [54, 14, 20], [-64, 18, 17]].forEach(([x, y, r]) => { const c = document.createElementNS(NS2, 'circle'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', r); c.setAttribute('fill', fill); g.appendChild(c); });
+  const b = document.createElementNS(NS2, 'rect'); b.setAttribute('x', -72); b.setAttribute('y', 10); b.setAttribute('width', 138); b.setAttribute('height', 24); b.setAttribute('rx', 12); b.setAttribute('fill', fill); g.appendChild(b);
+  const l = document.createElementNS(NS2, 'path'); l.setAttribute('d', 'M-38-16A34 34 0 0 1 18-30'); l.setAttribute('stroke', rim); l.setAttribute('stroke-width', '1.6'); l.setAttribute('fill', 'none'); l.setAttribute('stroke-linecap', 'round'); g.appendChild(l);
+  return g;
+}
+function buildClouds() {
+  const back = q('#cloudsBack'), front = q('#cloudsFront'), W = app.clientWidth, H = app.clientHeight;
+  back.innerHTML = ''; front.innerHTML = ''; WX.clouds = []; WX.front = null;
+  const info = WX.info, fill = info.dark ? '#141827' : '#1C2135', rim = info.dark ? 'rgba(160,172,210,.18)' : 'rgba(190,200,235,.3)';
+  for (let i = 0; i < info.clouds; i++) {
+    const el = cloudShape(fill, rim); el.setAttribute('opacity', (.7 + Math.random() * .3).toFixed(2)); back.appendChild(el);
+    WX.clouds.push({ el, x: Math.random() * (W + 300) - 150, y: H * (.08 + Math.random() * .38), s: .5 + Math.random() * .9, v: 5 + Math.random() * 8 });
+  }
+  if (info.front) {
+    const el = cloudShape(info.dark ? '#171B2B' : '#20263B', rim); el.setAttribute('opacity', '.86'); front.appendChild(el);
+    WX.front = { el, x: -220, v: 11, wait: now() + rnd(4, 12) };
+  }
+  WX.drops = [];
+  const cv = q('#rain'), dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = W * dpr; cv.height = H * dpr; cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  for (let i = 0; i < Math.round(170 * info.rain); i++) WX.drops.push({ x: Math.random() * W, y: Math.random() * H, l: 8 + Math.random() * 12, v: 380 + Math.random() * 260 });
+}
+function applyWeather(w, announce) {
+  Object.assign(WX, w); WX.info = COND[WX.cond] || COND.clear;
+  const txt = q('#weatherText');
+  txt.textContent = WX.mode !== 'auto' ? `Preview: ${WX.info.label}` : `Madurai ${WX.live ? '' : '~'}${WX.temp}°, ${WX.info.label}`;
+  txt.title = WX.live ? 'Live weather from Open-Meteo' : 'Seasonal estimate for Madurai';
+  q('#wxHint').textContent = WX.live
+    ? 'Nila is showing the live weather over Madurai. You can preview other skies below.'
+    : "Live weather can't load inside claude.ai, so Nila shows what Madurai's sky usually does this month. Once she's self-hosted on your iPhone, the live weather turns on by itself. You can preview other skies below.";
+  q('#fog').classList.toggle('on', !!WX.info.fog);
+  document.documentElement.style.setProperty('--sky-bottom', WX.info.hot ? '#1A110D' : WX.info.dark ? '#070912' : '#090C18');
+  Sound.setRain(WX.info.rain);
+  buildClouds();
+  qa('#wxChips .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.wx === WX.mode)));
+  if (announce && state === 'idle') {
+    if (WX.info.storm) { play('flinch', .8); emote('!', 1); }
+    else if (WX.info.rain) emote('☂', 1.4);
+    else if (WX.info.hot) { play('sweat', 2); emote('…', 1.4); }
+  }
+}
+async function refreshWeather() {
+  if (WX.mode !== 'auto') return;
+  const live = await liveWeather();
+  applyWeather(Object.assign({ mode: 'auto' }, live || typicalWeather()), true);
+}
+let cloudSide = 1, moonRect = null, moonRectAt = -1;
+function updateWeather(t, dt) {
+  const W = app.clientWidth;
+  WX.clouds.forEach(c => { c.x += c.v * dt; if (c.x > W + 160) c.x = -160; c.el.setAttribute('transform', `translate(${f1(c.x)} ${f1(c.y)}) scale(${c.s.toFixed(2)})`); });
+  if (WX.front) {
+    const f = WX.front;
+    if (t > f.wait) {
+      f.x += f.v * dt;
+      if (t - moonRectAt > .5) { moonRect = svg.getBoundingClientRect(); moonRectAt = t; }
+      const ar = app.getBoundingClientRect(), mx = moonRect.left - ar.left + moonRect.width / 2, my = moonRect.top - ar.top + moonRect.height * .42;
+      f.el.setAttribute('transform', `translate(${f1(f.x)} ${f1(my - 20)}) scale(1.5)`);
+      const d = f.x - mx;
+      if (Math.abs(d) < 190 && !on('cloudPeek') && state === 'idle' && Math.abs(d) > 120) { cloudSide = d < 0 ? -1 : 1; play('cloudPeek', 1.6); if (Math.random() < .5) emote('…', 1); }
+      if (f.x > W + 240) { f.x = -240; f.wait = t + rnd(25, 45); }
+    }
+  }
+  const cv = q('#rain');
+  if (WX.drops.length) {
+    const x = cv.getContext('2d'), H = app.clientHeight;
+    x.clearRect(0, 0, W, H); x.strokeStyle = 'rgba(200,214,255,.32)'; x.lineWidth = 1.1; x.beginPath();
+    for (const d of WX.drops) { d.y += d.v * dt; d.x -= d.v * dt * .12; if (d.y > H) { d.y = -20; d.x = Math.random() * (W + 60); } x.moveTo(d.x, d.y); x.lineTo(d.x + d.l * .12, d.y - d.l); }
+    x.stroke(); cv.dataset.dirty = '1';
+  } else if (cv.dataset.dirty) { cv.getContext('2d').clearRect(0, 0, W, app.clientHeight); delete cv.dataset.dirty; }
+  if (WX.info.storm && t > nextFlash) {
+    nextFlash = t + rnd(7, 16); flashV = .55;
+    setTimeout(() => { Sound.thunder(); if (state !== 'sleeping' && state !== 'breathing') { play('flinch', .9); play('sweat', 1.5); emote('!', .9); } }, rnd(400, 1600));
+  }
+  if (!WX.info.storm && nextFlash === 0) nextFlash = t + 5;
+  flashV *= Math.exp(-dt * 7); if (Math.random() < .02 && flashV > .2) flashV = .45;
+  q('#flash').style.opacity = flashV.toFixed(3);
+}
+const WX_OPTS = [['auto', 'Madurai now'], ['clear', 'Clear'], ['clouds', 'Cloudy'], ['rain', 'Rain'], ['storm', 'Storm'], ['mist', 'Mist'], ['hot', 'Hot']];
+WX_OPTS.forEach(([k, label]) => { const b = document.createElement('button'); b.className = 'chip'; b.dataset.wx = k; b.textContent = label; b.setAttribute('aria-pressed', 'false'); q('#wxChips').appendChild(b); });
+q('#wxChips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  if (b.dataset.wx === 'auto') { WX.mode = 'auto'; refreshWeather(); }
+  else applyWeather({ mode: b.dataset.wx, cond: b.dataset.wx, temp: WX.temp }, true);
+});
+addEventListener('resize', () => buildClouds());
+applyWeather(Object.assign({ mode: 'auto' }, typicalWeather()));
+refreshWeather();
+setInterval(refreshWeather, 15 * 60 * 1000);
+
+/* ---------- Breathing with Nila ---------- */
+const BREATH = { steps: [['Breathe in', 4], ['Hold', 4], ['Breathe out', 6]], cycles: 5, t0: 0, label: '' };
+function startBreathing() {
+  if (state === 'breathing') return;
+  closeSheets(); speakTok++; clearInterval(demoTimer);
+  if (state === 'listening') stopMic();
+  q('#capActions').innerHTML = '';
+  setState('breathing'); app.classList.add('breathing'); BREATH.t0 = now() + 1.2; BREATH.label = '';
+  setCaption('Get comfy. Follow my glow.'); Sound.breathStart();
+  const box = q('#capActions'), stop = document.createElement('button');
+  stop.className = 'pill'; stop.textContent = 'Stop'; stop.addEventListener('click', () => stopBreathing(false)); box.appendChild(stop);
+}
+function stopBreathing(done) {
+  if (state !== 'breathing') return;
+  app.classList.remove('breathing'); Sound.breathStop(); q('#capActions').innerHTML = ''; breathB = 0;
+  setState('idle');
+  if (done) { play('heart', 1.8); burst('heart', 6, 150 + ox, 70 + oy); Sound.chime(); reply(`Well done${you()}. How do you feel now?`); }
+  else setCaption('');
+}
+function updateBreathing(t) {
+  const el = t - BREATH.t0; if (el < 0) { breathB = 0; return; }
+  const cycleLen = BREATH.steps.reduce((a, s) => a + s[1], 0), cycle = Math.floor(el / cycleLen);
+  if (cycle >= BREATH.cycles) { stopBreathing(true); return; }
+  let p = el % cycleLen, label = '', left = 0;
+  for (const [name, d] of BREATH.steps) {
+    if (p < d) { label = name; left = Math.ceil(d - p); const k = p / d, ease = .5 - .5 * Math.cos(Math.PI * k);
+      breathB = name === 'Breathe in' ? ease : name === 'Hold' ? 1 : 1 - ease; break; }
+    p -= d;
+  }
+  const text = `${label}… ${left}`;
+  if (text !== BREATH.label) { if (label !== BREATH.label.split('…')[0]) Sound.tap(); BREATH.label = text; setCaption(text); }
+  Sound.breath(breathB);
+}
+q('#breatheBtn').addEventListener('click', () => { markActivity(); wake(); startBreathing(); });
+
+/* ---------- Sheets ---------- */
+let lastFocus = null;
+function openSheet(id) {
+  closeSheets(true); lastFocus = document.activeElement;
+  const sh = q('#' + id), scrim = q('#scrim'); scrim.hidden = false; sh.hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => { scrim.classList.add('open'); sh.classList.add('open'); }));
+  if (id === 'journalSheet') { renderJournal(); setTimeout(() => q('#jText').focus({ preventScroll: true }), 350); }
+  if (id === 'moreSheet') renderMemories();
+  markActivity(); wake();
+}
+function closeSheets(quick) {
+  const scrim = q('#scrim');
+  qa('.sheet').forEach(sh => { if (sh.hidden) return; sh.classList.remove('open'); if (quick) sh.hidden = true; else setTimeout(() => { if (!sh.classList.contains('open')) sh.hidden = true; }, 340); });
+  scrim.classList.remove('open'); if (quick) scrim.hidden = true; else setTimeout(() => { if (!scrim.classList.contains('open')) scrim.hidden = true; }, 260);
+  if (!quick && lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+}
+q('#scrim').addEventListener('click', () => closeSheets());
+qa('[data-close]').forEach(b => b.addEventListener('click', () => closeSheets()));
+addEventListener('keydown', e => { if (e.key === 'Escape') { if (state === 'breathing') stopBreathing(false); else closeSheets(); } });
+q('#journalBtn').addEventListener('click', () => openSheet('journalSheet'));
+q('#moreBtn').addEventListener('click', () => openSheet('moreSheet'));
+function syncSoundBtn() {
+  const b = q('#soundBtn'), onNow = Sound.on;
+  b.setAttribute('aria-label', onNow ? 'Mute sounds' : 'Turn sounds on');
+  b.querySelector('.wave').style.display = onNow ? '' : 'none'; b.querySelector('.mute').style.display = onNow ? 'none' : '';
+}
+q('#soundBtn').addEventListener('click', () => { const v = Sound.toggle(); syncSoundBtn(); if (v) Sound.tap(); });
+syncSoundBtn();
+
+/* ---------- Memories list ---------- */
+function renderMemories() {
+  const list = q('#memList'), items = memItems().slice().sort((a, b) => (b.created || 0) - (a.created || 0));
+  list.innerHTML = '';
+  items.forEach(x => {
+    const li = document.createElement('li'), txt = document.createElement('span'), meta = document.createElement('span'), del = document.createElement('button');
+    txt.textContent = x.label; meta.className = 'meta'; meta.textContent = new Date(x.created || Date.now()).toLocaleDateString('en', { day: 'numeric', month: 'short' });
+    const wrap = document.createElement('span'); wrap.append(txt, meta);
+    del.className = 'del'; del.textContent = 'Forget'; del.setAttribute('aria-label', `Forget: ${x.label}`);
+    del.addEventListener('click', () => { forgetMemory(x.id); renderMemories(); });
+    li.append(wrap, del); list.appendChild(li);
+  });
+  q('#memEmpty').hidden = items.length > 0; q('#forgetAll').hidden = items.length === 0;
+  q('#syncHint').textContent = Store.synced ? 'Saved privately to your claude.ai account, so it follows you across devices.' : 'Saved on this device only.';
+}
+let forgetArmed = 0;
+q('#forgetAll').addEventListener('click', () => {
+  const b = q('#forgetAll');
+  if (now() - forgetArmed > 4) { forgetArmed = now(); b.textContent = 'Tap again to forget everything'; setTimeout(() => { b.textContent = 'Forget everything'; }, 4000); return; }
+  memItems().forEach(x => forgetMemory(x.id)); b.textContent = 'Forget everything'; renderMemories();
+  closeSheets(); play('sweat', 1); reply("Okay. I've let all my memories float away, like dandelion seeds.");
+});
+
+/* ---------- Backup: export and import ---------- */
+const dataHint = t => { q('#dataHint').textContent = t; };
+q('#exportBtn').addEventListener('click', async () => {
+  const data = JSON.stringify({ app: 'nila', version: 1, exported: new Date().toISOString(), store: Store.dump() }, null, 2);
+  const name = `nila-backup-${todayStr()}.json`;
+  let dl = null;
+  try { if (window.claude && typeof window.claude.use === 'function') dl = await window.claude.use('downloads'); } catch (e) {}
+  if (dl) {
+    try { await dl.save({ filename: name, data }); dataHint('Backup saved. Keep it somewhere safe, like the Files app.'); return; }
+    catch (e) { if (e && e.code === 'declined') { dataHint('Export cancelled.'); return; } }
+  }
+  try {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' })); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    dataHint('Backup saved to your downloads.');
+  } catch (e) { dataHint("This view can't save files. Open Nila in the claude.ai app or on the web and try again."); }
+});
+q('#importBtn').addEventListener('click', () => q('#importFile').click());
+q('#importFile').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const obj = JSON.parse(await f.text());
+    if (!obj || obj.app !== 'nila' || !obj.store) { dataHint("That file isn't a Nila backup. Choose a file named like nila-backup-2026-09-30.json."); return; }
+    const beforeM = memItems().length, beforeJ = journalItems().length;
+    Store.importAll(obj.store);
+    const p = Store.get('profile'); if (p && p.visits > prof.visits) { prof.visits = p.visits; buildOrbit(); }
+    const gotM = memItems().length - beforeM, gotJ = journalItems().length - beforeJ;
+    renderMemories();
+    dataHint(`Imported ${gotM} ${gotM === 1 ? 'memory' : 'memories'} and ${gotJ} journal ${gotJ === 1 ? 'entry' : 'entries'}. Anything you already had was kept.`);
+    Sound.chime(); play('heart', 1.6); burst('sparkle', 10, 150 + ox, 60 + oy);
+  } catch (err) { dataHint("Couldn't read that file. Make sure it's the backup Nila exported."); }
+});
+
+/* ---------- Night journal ---------- */
+const MOODS = [['glowing', 'Glowing', '#F2DCA6'], ['good', 'Good', '#A9D3BB'], ['okay', 'Okay', '#DDE4F7'], ['low', 'Low', '#9FB4E6'], ['heavy', 'Heavy', '#8A93B8']];
+let jMood = 'okay', jSelected = null;
+MOODS.forEach(([k, label, col]) => {
+  const b = document.createElement('button'); b.className = 'mood'; b.dataset.mood = k; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === jMood));
+  const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = col; b.append(dot, label);
+  b.addEventListener('click', () => { jMood = k; qa('.mood').forEach(m => m.setAttribute('aria-checked', String(m.dataset.mood === k))); Sound.tap(); });
+  q('#jMoods').appendChild(b);
+});
+function journalItems() {
+  const all = [];
+  Store.keys().filter(k => k.startsWith('journal-')).forEach(k => { const d = Store.get(k); const del = new Set(d.deleted || []); (d.items || []).forEach(x => { if (!del.has(x.id)) all.push(x); }); });
+  return all.sort((a, b) => b.ts - a.ts);
+}
+const moodColor = k => (MOODS.find(m => m[0] === k) || MOODS[2])[2];
+const moodLabel = k => (MOODS.find(m => m[0] === k) || MOODS[2])[1];
+const niceDate = ts => new Date(ts).toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+function showEntry(x) {
+  jSelected = x.id; const r = q('#jRead'); r.hidden = false; r.innerHTML = '';
+  const d = document.createElement('span'); d.className = 'date'; d.textContent = `${niceDate(x.ts)}, ${moodLabel(x.mood).toLowerCase()}`;
+  r.append(d, document.createTextNode(x.text)); renderJournalSky();
+}
+function renderJournalSky() {
+  const sky = q('#jSky'), items = journalItems().slice(0, 60).reverse(); sky.innerHTML = '';
+  for (let i = 0; i < 40; i++) { const c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', f1(hashStr('x' + i) * 320)); c.setAttribute('cy', f1(hashStr('y' + i) * 150)); c.setAttribute('r', '.6'); c.setAttribute('fill', '#fff'); c.setAttribute('opacity', '.25'); sky.appendChild(c); }
+  if (!items.length) { const t = document.createElementNS(NS, 'text'); t.setAttribute('x', 160); t.setAttribute('y', 80); t.setAttribute('text-anchor', 'middle'); t.setAttribute('fill', 'rgba(236,238,245,.5)'); t.setAttribute('font-size', '12'); t.textContent = 'Your first star is waiting'; sky.appendChild(t); return; }
+  const pts = items.map((x, i) => ({ x, px: items.length === 1 ? 160 : 24 + i * (272 / (items.length - 1)), py: 22 + hashStr(x.id) * 106 }));
+  const line = document.createElementNS(NS, 'path'); line.setAttribute('d', pts.map((p, i) => (i ? 'L' : 'M') + f1(p.px) + ' ' + f1(p.py)).join('')); line.setAttribute('stroke', 'rgba(228,233,247,.18)'); line.setAttribute('fill', 'none'); line.setAttribute('stroke-width', '1'); sky.appendChild(line);
+  pts.forEach(p => {
+    const g = document.createElementNS(NS, 'g'), sel = p.x.id === jSelected, r = 3 + Math.min(4, p.x.text.length / 120);
+    g.setAttribute('transform', `translate(${f1(p.px)} ${f1(p.py)})`); g.setAttribute('tabindex', '0'); g.setAttribute('role', 'button');
+    g.setAttribute('aria-label', `${niceDate(p.x.ts)}, ${moodLabel(p.x.mood)}`);
+    const hit = document.createElementNS(NS, 'circle'); hit.setAttribute('r', '12'); hit.setAttribute('fill', 'transparent');
+    const st = document.createElementNS(NS, 'path'); const k = r * (sel ? 1.6 : 1);
+    st.setAttribute('d', `M0 ${-k * 1.6}Q${k * .25} ${-k * .25} ${k * 1.6} 0Q${k * .25} ${k * .25} 0 ${k * 1.6}Q${-k * .25} ${k * .25} ${-k * 1.6} 0Q${-k * .25} ${-k * .25} 0 ${-k * 1.6}Z`);
+    st.setAttribute('fill', moodColor(p.x.mood));
+    g.append(hit, st);
+    const openIt = () => { showEntry(p.x); Sound.sparkle(); };
+    g.addEventListener('click', openIt); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openIt(); } });
+    sky.appendChild(g);
+  });
+}
+function renderJournal() {
+  renderJournalSky();
+  const list = q('#jList'), items = journalItems(); list.innerHTML = '';
+  items.slice(0, 50).forEach(x => {
+    const li = document.createElement('li'), dot = document.createElement('span'), wrap = document.createElement('span'), meta = document.createElement('span'), del = document.createElement('button');
+    dot.className = 'dot'; dot.style.background = moodColor(x.mood);
+    meta.className = 'meta'; meta.textContent = `${niceDate(x.ts)}, ${moodLabel(x.mood).toLowerCase()}`;
+    wrap.append(meta, document.createTextNode(x.text.length > 110 ? x.text.slice(0, 110) + '…' : x.text)); wrap.style.cursor = 'pointer';
+    wrap.addEventListener('click', () => { showEntry(x); q('#jSky').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
+    del.className = 'del'; del.textContent = 'Delete'; del.setAttribute('aria-label', `Delete the entry from ${niceDate(x.ts)}`);
+    del.addEventListener('click', () => {
+      if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Sure?'; setTimeout(() => { del.dataset.armed = ''; del.textContent = 'Delete'; }, 3000); return; }
+      const key = 'journal-' + new Date(x.ts).getFullYear(), d = clone(Store.get(key) || { items: [], deleted: [] });
+      d.items = d.items.filter(y => y.id !== x.id); d.deleted = [...(d.deleted || []), x.id]; Store.set(key, d);
+      if (jSelected === x.id) { jSelected = null; q('#jRead').hidden = true; }
+      renderJournal();
+    });
+    li.append(dot, wrap, del); list.appendChild(li);
+  });
+  q('#jHint').textContent = items.length ? `${items.length} ${items.length === 1 ? 'star' : 'stars'} so far. Tap one to read that night again.` : 'Every entry becomes a star. Tap one to read that night again.';
+}
+q('#jText').addEventListener('input', () => {
+  const v = q('#jText').value; markActivity(); lastKey = now(); typedLen = v.length;
+  caretGX = ((v.length % 30) / 30 * 12 - 6) * .5; mood = sentiment(v) * .7; question = false;
+  if (state !== 'breathing') setState('typing');
+});
+q('#jSave').addEventListener('click', () => {
+  const text = q('#jText').value.trim();
+  if (!text) { q('#jText').focus(); q('#jText').placeholder = 'Write a few words first. Anything at all.'; return; }
+  const ts = Date.now(), key = 'journal-' + new Date(ts).getFullYear(), d = clone(Store.get(key) || { items: [], deleted: [] });
+  const entry = { id: uidGen(), ts, created: ts, text, mood: jMood }; d.items.push(entry); Store.set(key, d);
+  extractMemories(text).forEach(f => { if (f.type !== 'name') addMemory(f); });
+  q('#jText').value = ''; jSelected = entry.id; closeSheets();
+  Sound.chime(); burst('sparkle', 10, 150 + ox, 150 + oy); spin();
+  const lines = {
+    glowing: [`What a bright day${you()}! I added it to your sky.`, 'Your happiness made a big shiny star tonight.'],
+    good: ['That sounds like a lovely day. Your star is up there now.', `Thank you for sharing it with me${you()}.`],
+    okay: ['Thanks for telling me about today. Even quiet days deserve a star.', 'Saved to your sky. Rest well tonight.'],
+    low: [`Thank you for trusting me with tonight${you()}. I'll keep it safe.`, "Some days are dim, and that's okay. I'm here."],
+    heavy: [`That sounds heavy${you()}. Thank you for letting it out. Want to breathe together?`]
+  };
+  const chosen = jMood;
+  mood = { glowing: .8, good: .5, okay: .1, low: -.4, heavy: -.6 }[chosen];
+  setTimeout(() => { if (mood > .3) { play('giggle', 1.2); Sound.heart(); } else if (mood < 0) Sound.sad(); reply(pick(lines[chosen]), () => { if (chosen === 'heavy' || chosen === 'low') capAction('breathe'); }); }, 900);
+  jMood = 'okay'; qa('.mood').forEach(m => m.setAttribute('aria-checked', String(m.dataset.mood === 'okay')));
+});
+
+/* ---------- Sync with your account once it answers ---------- */
+Store.onReady(() => {
+  const p = Store.get('profile'); if (p && p.visits > prof.visits) { prof.visits = p.visits; buildOrbit(); }
+  if (!q('#moreSheet').hidden) renderMemories();
+  if (!q('#journalSheet').hidden) renderJournal();
+});
+Store.init();
+
+/* ---------- Greeting that knows you ---------- */
+function greeting() {
+  const h = new Date().getHours();
+  const tod = h < 5 ? `You're up late${you()}.` : h < 12 ? `Good morning${you()}.` : h < 17 ? `Good afternoon${you()}.` : h < 21 ? `Good evening${you()}.` : `Hello, night owl${you()}.`;
+  const rec = recallGreeting();
+  if (rec) { if (rec.party) { topicCostume = 'party'; topicUntil = now() + 20; } return rec.line; }
+  if (prof.visits <= 1) return "Hi, I'm Nila. I'll keep you company tonight. Hold me for a cuddle.";
+  const days = Math.floor((Date.now() - prevVisit) / 864e5);
+  if (days >= 2) return `${tod} It's been ${days} days. I kept the sky warm for you.`;
+  if (SKY.key === 'radiant' || SKY.key === 'shy') return `${tod} ${SKY.line}`;
+  if (WX.info.rain) return `${tod} It's rainy in Madurai, so I brought my umbrella.`;
+  if (WX.info.hot) return `${tod} Phew, Madurai is warm tonight.`;
+  if (h >= 20 && !journalItems().some(x => new Date(x.ts).toDateString() === new Date().toDateString()) && Math.random() < .5) return `${tod} Want to tell me about your day? The journal is ready.`;
+  if (Math.random() < .4) return `${tod} ${SKY.line}`;
+  return `${tod} I'm so glad you're back.`;
+}
+setTimeout(() => { hop(); play('heart', 1.2); const g = greeting(); reply(g, () => { if (/journal is ready/.test(g)) capAction('journal'); }); }, 900);
+
+})();
+</script>
+</body>
+</html>
